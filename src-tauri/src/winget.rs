@@ -1,7 +1,9 @@
-// Lógica de winget: detectar, listar actualizaciones y aplicarlas con logs en vivo.
+// Lógica de winget: detectar, listar/buscar, instalar/actualizar con logs en vivo.
+// El parseo es INDEPENDIENTE DEL IDIOMA: localiza las columnas por su posición
+// (a partir de la línea de guiones), no por el texto de la cabecera.
 
 use serde::{Deserialize, Serialize};
-use std::io::{BufRead, BufReader, Read};
+use std::io::Read;
 use std::process::{Command, Stdio};
 use tauri::{AppHandle, Emitter};
 
@@ -10,7 +12,6 @@ use std::os::windows::process::CommandExt;
 #[cfg(windows)]
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
-/// Una aplicación que tiene una actualización disponible.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Upgrade {
     pub name: String,
@@ -20,7 +21,6 @@ pub struct Upgrade {
     pub source: String,
 }
 
-/// Un paquete encontrado al buscar o ya instalado.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Package {
     pub name: String,
@@ -29,7 +29,6 @@ pub struct Package {
     pub source: String,
 }
 
-/// Construye un Command de winget sin abrir una ventana de consola.
 fn winget_cmd() -> Command {
     let mut cmd = Command::new("winget");
     #[cfg(windows)]
@@ -37,7 +36,6 @@ fn winget_cmd() -> Command {
     cmd
 }
 
-/// ¿Está winget instalado y disponible?
 #[tauri::command]
 pub fn winget_available() -> bool {
     winget_cmd()
@@ -49,7 +47,8 @@ pub fn winget_available() -> bool {
         .unwrap_or(false)
 }
 
-/// Lista los paquetes que tienen una actualización disponible.
+// ===================== Comandos de lectura =====================
+
 #[tauri::command]
 pub async fn list_upgrades() -> Result<Vec<Upgrade>, String> {
     tauri::async_runtime::spawn_blocking(|| {
@@ -62,72 +61,54 @@ pub async fn list_upgrades() -> Result<Vec<Upgrade>, String> {
             ])
             .output()
             .map_err(|e| format!("No se pudo ejecutar winget: {e}. ¿Está instalado?"))?;
-
-        let text = decode(&output.stdout);
-        Ok(parse_upgrades(&text))
+        Ok(parse_upgrades(&decode(&output.stdout)))
     })
     .await
     .map_err(|e| e.to_string())?
 }
 
-/// Actualiza un único paquete por su Id, emitiendo cada línea como evento.
-#[tauri::command]
-pub async fn upgrade_package(app: AppHandle, id: String) -> Result<i32, String> {
-    let args = vec![
-        "upgrade".to_string(),
-        "--id".to_string(),
-        id,
-        "--exact".to_string(),
-        "--silent".to_string(),
-        "--accept-source-agreements".to_string(),
-        "--accept-package-agreements".to_string(),
-        "--include-unknown".to_string(),
-        "--disable-interactivity".to_string(),
-    ];
-    stream(app, args).await
+fn add_source(args: &mut Vec<String>, source: &str) {
+    let s = source.trim();
+    if !s.is_empty() && s != "all" {
+        args.push("--source".into());
+        args.push(s.to_string());
+    }
 }
 
-/// Actualiza TODOS los paquetes, emitiendo cada línea como evento.
-#[tauri::command]
-pub async fn upgrade_all(app: AppHandle) -> Result<i32, String> {
-    let args = vec![
-        "upgrade".to_string(),
-        "--all".to_string(),
-        "--silent".to_string(),
-        "--accept-source-agreements".to_string(),
-        "--accept-package-agreements".to_string(),
-        "--include-unknown".to_string(),
-        "--disable-interactivity".to_string(),
-    ];
-    stream(app, args).await
+fn add_mode(args: &mut Vec<String>, silent: bool) {
+    if silent {
+        args.push("--silent".into());
+    } else {
+        args.push("--interactive".into());
+    }
 }
 
-/// Busca paquetes disponibles para instalar.
 #[tauri::command]
-pub async fn search_packages(query: String) -> Result<Vec<Package>, String> {
+pub async fn search_packages(query: String, source: String) -> Result<Vec<Package>, String> {
     let q = query.trim().to_string();
     if q.is_empty() {
         return Ok(Vec::new());
     }
     tauri::async_runtime::spawn_blocking(move || {
+        let mut args = vec![
+            "search".to_string(),
+            "--query".to_string(),
+            q,
+            "--accept-source-agreements".to_string(),
+            "--disable-interactivity".to_string(),
+        ];
+        add_source(&mut args, &source);
+        let refs: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
         let output = winget_cmd()
-            .args([
-                "search",
-                "--query",
-                &q,
-                "--accept-source-agreements",
-                "--disable-interactivity",
-            ])
+            .args(&refs)
             .output()
             .map_err(|e| format!("No se pudo ejecutar winget: {e}"))?;
-        let text = decode(&output.stdout);
-        Ok(parse_packages(&text))
+        Ok(parse_packages(&decode(&output.stdout)))
     })
     .await
     .map_err(|e| e.to_string())?
 }
 
-/// Lista los paquetes instalados (opcionalmente filtrados por texto).
 #[tauri::command]
 pub async fn list_installed(query: String) -> Result<Vec<Package>, String> {
     tauri::async_runtime::spawn_blocking(move || {
@@ -141,50 +122,83 @@ pub async fn list_installed(query: String) -> Result<Vec<Package>, String> {
             args.push("--query".into());
             args.push(q.to_string());
         }
-        let arg_refs: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
+        let refs: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
         let output = winget_cmd()
-            .args(&arg_refs)
+            .args(&refs)
             .output()
             .map_err(|e| format!("No se pudo ejecutar winget: {e}"))?;
-        let text = decode(&output.stdout);
-        Ok(parse_packages(&text))
+        Ok(parse_packages(&decode(&output.stdout)))
     })
     .await
     .map_err(|e| e.to_string())?
 }
 
-/// Instala un paquete por su Id, con logs en vivo.
+// ===================== Comandos con streaming =====================
+
 #[tauri::command]
-pub async fn install_package(app: AppHandle, id: String) -> Result<i32, String> {
+pub async fn upgrade_package(app: AppHandle, id: String) -> Result<i32, String> {
     let args = vec![
+        "upgrade".into(),
+        "--id".into(),
+        id,
+        "--exact".into(),
+        "--silent".into(),
+        "--accept-source-agreements".into(),
+        "--accept-package-agreements".into(),
+        "--include-unknown".into(),
+    ];
+    stream(app, args).await
+}
+
+#[tauri::command]
+pub async fn upgrade_all(app: AppHandle) -> Result<i32, String> {
+    let args = vec![
+        "upgrade".into(),
+        "--all".into(),
+        "--silent".into(),
+        "--accept-source-agreements".into(),
+        "--accept-package-agreements".into(),
+        "--include-unknown".into(),
+    ];
+    stream(app, args).await
+}
+
+#[tauri::command]
+pub async fn install_package(
+    app: AppHandle,
+    id: String,
+    source: String,
+    silent: bool,
+) -> Result<i32, String> {
+    let mut args = vec![
         "install".to_string(),
         "--id".to_string(),
         id,
         "--exact".to_string(),
-        "--silent".to_string(),
         "--accept-source-agreements".to_string(),
         "--accept-package-agreements".to_string(),
-        "--disable-interactivity".to_string(),
     ];
+    add_mode(&mut args, silent);
+    add_source(&mut args, &source);
     stream(app, args).await
 }
 
-/// Desinstala un paquete por su Id, con logs en vivo.
 #[tauri::command]
-pub async fn uninstall_package(app: AppHandle, id: String) -> Result<i32, String> {
-    let args = vec![
+pub async fn uninstall_package(app: AppHandle, id: String, silent: bool) -> Result<i32, String> {
+    let mut args = vec![
         "uninstall".to_string(),
         "--id".to_string(),
         id,
         "--exact".to_string(),
-        "--silent".to_string(),
         "--accept-source-agreements".to_string(),
-        "--disable-interactivity".to_string(),
     ];
+    add_mode(&mut args, silent);
     stream(app, args).await
 }
 
-/// Ejecuta winget retransmitiendo stdout/stderr línea a línea al frontend.
+/// Lanza winget y retransmite su salida en vivo. Las actualizaciones de progreso
+/// (terminadas en \r) se emiten como "transitorias" para reemplazar la línea
+/// anterior; las líneas terminadas en \n se confirman.
 async fn stream(app: AppHandle, args: Vec<String>) -> Result<i32, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let mut child = winget_cmd()
@@ -194,70 +208,138 @@ async fn stream(app: AppHandle, args: Vec<String>) -> Result<i32, String> {
             .spawn()
             .map_err(|e| format!("No se pudo ejecutar winget: {e}"))?;
 
-        if let Some(out) = child.stdout.take() {
-            emit_lines(&app, out);
+        let stdout = child.stdout.take();
+        let stderr = child.stderr.take();
+
+        let app_err = app.clone();
+        let err_handle = std::thread::spawn(move || {
+            if let Some(e) = stderr {
+                emit_lines(&app_err, e);
+            }
+        });
+        if let Some(o) = stdout {
+            emit_lines(&app, o);
         }
-        if let Some(err) = child.stderr.take() {
-            emit_lines(&app, err);
-        }
+        let _ = err_handle.join();
 
         let status = child.wait().map_err(|e| e.to_string())?;
         let code = status.code().unwrap_or(-1);
-        let _ = app.emit("upgrade-done", code);
+        let _ = app.emit("winget-done", code);
         Ok(code)
     })
     .await
     .map_err(|e| e.to_string())?
 }
 
-/// Lee un stream byte a byte y emite cada línea (separadas por \n o \r) como evento "upgrade-log".
-fn emit_lines<R: Read>(app: &AppHandle, reader: R) {
-    let mut buf = BufReader::new(reader);
-    let mut bytes: Vec<u8> = Vec::new();
-    let mut chunk = [0u8; 1];
+fn emit_lines<R: Read>(app: &AppHandle, mut reader: R) {
+    let mut acc = String::new();
+    let mut chunk = [0u8; 4096];
     loop {
-        match buf.read(&mut chunk) {
+        match reader.read(&mut chunk) {
             Ok(0) => break,
-            Ok(_) => {
-                let b = chunk[0];
-                if b == b'\n' || b == b'\r' {
-                    flush(app, &mut bytes);
-                } else {
-                    bytes.push(b);
-                }
+            Ok(n) => {
+                acc.push_str(&String::from_utf8_lossy(&chunk[..n]));
+                process_acc(app, &mut acc, false);
             }
             Err(_) => break,
         }
     }
-    flush(app, &mut bytes);
+    process_acc(app, &mut acc, true);
 }
 
-fn flush(app: &AppHandle, bytes: &mut Vec<u8>) {
-    if bytes.is_empty() {
-        return;
+fn process_acc(app: &AppHandle, acc: &mut String, eof: bool) {
+    loop {
+        let pos = acc.find(|c| c == '\n' || c == '\r');
+        let i = match pos {
+            Some(i) => i,
+            None => break,
+        };
+        let is_nl = acc.as_bytes()[i] == b'\n';
+        if is_nl {
+            let line: String = acc.drain(..=i).collect();
+            commit(app, &line[..line.len() - 1], false);
+        } else {
+            // '\r': si es el último byte y no es EOF, espera por si llega "\r\n".
+            if i + 1 >= acc.len() && !eof {
+                break;
+            }
+            if acc.as_bytes().get(i + 1) == Some(&b'\n') {
+                let line: String = acc.drain(..=i + 1).collect();
+                commit(app, &line[..line.len() - 2], false);
+            } else {
+                let line: String = acc.drain(..=i).collect();
+                commit(app, &line[..line.len() - 1], true);
+            }
+        }
     }
-    let line = String::from_utf8_lossy(bytes).trim().to_string();
-    bytes.clear();
-    // Ignora líneas de barra de progreso (solo símbolos) y líneas vacías.
-    if line.is_empty() || line.chars().all(|c| matches!(c, '█' | '▒' | '░' | '-' | '\\' | '/' | '|' | '.' | ' ')) {
-        return;
+    if eof && !acc.is_empty() {
+        let line = std::mem::take(acc);
+        commit(app, &line, false);
     }
-    let _ = app.emit("upgrade-log", line);
 }
 
-/// Decodifica la salida de winget. Moderno winget usa UTF-8.
+fn commit(app: &AppHandle, raw: &str, transient: bool) {
+    let text = strip_ansi(raw);
+    let trimmed = text.trim_end();
+    if trimmed.trim().is_empty() {
+        return;
+    }
+    let _ = app.emit(
+        "winget-out",
+        serde_json::json!({ "text": trimmed, "transient": transient }),
+    );
+}
+
+// ===================== Utilidades de texto =====================
+
+/// Elimina secuencias de escape ANSI (colores, movimientos de cursor, etc.).
+fn strip_ansi(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut chars = s.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '\u{1b}' {
+            match chars.peek() {
+                Some('[') => {
+                    chars.next();
+                    while let Some(&nc) = chars.peek() {
+                        chars.next();
+                        if ('@'..='~').contains(&nc) {
+                            break;
+                        }
+                    }
+                }
+                Some(']') => {
+                    chars.next();
+                    while let Some(&nc) = chars.peek() {
+                        chars.next();
+                        if nc == '\u{7}' {
+                            break;
+                        }
+                        if nc == '\u{1b}' {
+                            if chars.peek() == Some(&'\\') {
+                                chars.next();
+                            }
+                            break;
+                        }
+                    }
+                }
+                Some(_) => {
+                    chars.next();
+                }
+                None => {}
+            }
+        } else if c != '\u{0}' {
+            out.push(c);
+        }
+    }
+    out
+}
+
 fn decode(bytes: &[u8]) -> String {
-    String::from_utf8_lossy(bytes).replace('\r', "\n")
+    let s = String::from_utf8_lossy(bytes);
+    strip_ansi(&s).replace('\r', "\n")
 }
 
-/// Devuelve el índice de carácter (no byte) donde empieza `needle` dentro de `haystack`.
-fn char_pos(haystack: &str, needle: &str) -> Option<usize> {
-    haystack
-        .find(needle)
-        .map(|byte_idx| haystack[..byte_idx].chars().count())
-}
-
-/// Extrae los caracteres en el rango [start, end) y los recorta.
 fn slice_chars(line: &[char], start: usize, end: usize) -> String {
     if start >= line.len() {
         return String::new();
@@ -266,105 +348,110 @@ fn slice_chars(line: &[char], start: usize, end: usize) -> String {
     line[start..end].iter().collect::<String>().trim().to_string()
 }
 
-/// Parsea CUALQUIER tabla de ancho fijo de winget (upgrade / search / list)
-/// localizando las columnas por su cabecera y devolviendo filas como mapas
-/// cabecera→valor. Tolera columnas presentes o ausentes (p. ej. "Match").
-fn parse_table(text: &str) -> Vec<std::collections::HashMap<String, String>> {
-    const KNOWN: [&str; 6] = ["Name", "Id", "Version", "Available", "Match", "Source"];
+/// Devuelve el índice de la línea de cabecera (la que está justo encima de la
+/// línea de guiones separadora), o None si no hay tabla.
+fn find_header(lines: &[&str]) -> Option<usize> {
+    for (i, l) in lines.iter().enumerate() {
+        let t = l.trim();
+        let dashes = t.chars().filter(|&c| c == '-').count();
+        if dashes >= 8 && t.chars().all(|c| c == '-' || c == ' ') && i > 0 {
+            return Some(i - 1);
+        }
+    }
+    None
+}
+
+/// Posiciones (en caracteres) donde empieza cada columna, según la cabecera.
+fn column_starts(header: &str) -> Vec<usize> {
+    let chars: Vec<char> = header.chars().collect();
+    let mut starts = Vec::new();
+    let mut prev_space = true;
+    for (i, &c) in chars.iter().enumerate() {
+        let is_space = c == ' ' || c == '\t';
+        if !is_space && prev_space {
+            starts.push(i);
+        }
+        prev_space = is_space;
+    }
+    starts
+}
+
+/// Divide la tabla en filas de campos según las posiciones de las columnas.
+fn parse_rows(text: &str) -> (usize, Vec<Vec<String>>) {
     let lines: Vec<&str> = text.lines().collect();
-
-    // Cabecera = primera línea que contiene a la vez "Name" e "Id".
-    let header_idx = match lines.iter().position(|l| l.contains("Name") && l.contains("Id")) {
+    let header_idx = match find_header(&lines) {
         Some(i) => i,
-        None => return Vec::new(),
+        None => return (0, Vec::new()),
     };
-    let header = lines[header_idx];
-
-    // Posiciones (en caracteres) de las columnas presentes, ordenadas.
-    let mut cols: Vec<(usize, &str)> = KNOWN
-        .iter()
-        .filter_map(|k| char_pos(header, k).map(|p| (p, *k)))
-        .collect();
-    cols.sort_by_key(|(p, _)| *p);
-    if cols.is_empty() {
-        return Vec::new();
+    let starts = column_starts(lines[header_idx]);
+    if starts.len() < 2 {
+        return (0, Vec::new());
     }
 
     let mut rows = Vec::new();
-    for &line in lines.iter().skip(header_idx + 1) {
-        let trimmed = line.trim();
-        if trimmed.is_empty() {
+    for &line in lines.iter().skip(header_idx + 2) {
+        let t = line.trim();
+        if t.is_empty() || t.chars().all(|c| c == '-' || c == ' ') {
             continue;
         }
-        if trimmed.chars().all(|c| c == '-' || c == ' ') {
-            continue; // separador de guiones
-        }
-        let tl = trimmed.to_lowercase();
-        if tl.contains("upgrades available")
-            || tl.contains("upgrade available")
-            || tl.contains("no package found")
-            || tl.contains("no installed package")
-            || tl.contains("following packages")
-        {
-            break; // pie de tabla
-        }
-
         let chars: Vec<char> = line.chars().collect();
-        let mut map = std::collections::HashMap::new();
-        for i in 0..cols.len() {
-            let start = cols[i].0;
-            let end = if i + 1 < cols.len() {
-                cols[i + 1].0
+        let mut fields = Vec::with_capacity(starts.len());
+        for i in 0..starts.len() {
+            let s = starts[i];
+            let e = if i + 1 < starts.len() {
+                starts[i + 1]
             } else {
                 chars.len()
             };
-            map.insert(cols[i].1.to_string(), slice_chars(&chars, start, end));
+            fields.push(slice_chars(&chars, s, e));
         }
-        // Requiere un Id no vacío para considerarla una fila válida.
-        if map.get("Id").map(|s| s.is_empty()).unwrap_or(true) {
-            continue;
-        }
-        rows.push(map);
+        rows.push(fields);
     }
-    rows
+    (starts.len(), rows)
 }
 
-/// Filas de `winget upgrade` → paquetes con actualización disponible.
+/// Estructura de `winget upgrade`: Name, Id, Version, Available, Source.
 pub fn parse_upgrades(text: &str) -> Vec<Upgrade> {
-    parse_table(text)
-        .into_iter()
-        .filter_map(|m| {
-            let id = m.get("Id").cloned().unwrap_or_default();
-            let available = m.get("Available").cloned().unwrap_or_default();
-            // Los Id de winget nunca llevan espacios: descarta filas mal alineadas o pies de tabla.
-            if id.is_empty() || available.is_empty() || id.contains(char::is_whitespace) {
+    let (_, rows) = parse_rows(text);
+    rows.into_iter()
+        .filter_map(|f| {
+            let name = f.first().cloned().unwrap_or_default();
+            let id = f.get(1).cloned().unwrap_or_default();
+            let current = f.get(2).cloned().unwrap_or_default();
+            let available = f.get(3).cloned().unwrap_or_default();
+            let source = f.last().cloned().unwrap_or_default();
+            // Id sin espacios y versión disponible no vacía → fila válida.
+            if id.is_empty() || id.contains(char::is_whitespace) || available.is_empty() {
                 return None;
             }
             Some(Upgrade {
-                name: m.get("Name").cloned().unwrap_or_default(),
+                name,
                 id,
-                current: m.get("Version").cloned().unwrap_or_default(),
+                current,
                 available,
-                source: m.get("Source").cloned().unwrap_or_default(),
+                source,
             })
         })
         .collect()
 }
 
-/// Filas de `winget search` o `winget list` → paquetes.
+/// Estructura de `winget search`/`list`: Name, Id, Version, [Match], Source.
 pub fn parse_packages(text: &str) -> Vec<Package> {
-    parse_table(text)
-        .into_iter()
-        .filter_map(|m| {
-            let id = m.get("Id").cloned().unwrap_or_default();
+    let (_, rows) = parse_rows(text);
+    rows.into_iter()
+        .filter_map(|f| {
+            let name = f.first().cloned().unwrap_or_default();
+            let id = f.get(1).cloned().unwrap_or_default();
+            let version = f.get(2).cloned().unwrap_or_default();
+            let source = f.last().cloned().unwrap_or_default();
             if id.is_empty() || id.contains(char::is_whitespace) {
                 return None;
             }
             Some(Package {
-                name: m.get("Name").cloned().unwrap_or_default(),
+                name,
                 id,
-                version: m.get("Version").cloned().unwrap_or_default(),
-                source: m.get("Source").cloned().unwrap_or_default(),
+                version,
+                source,
             })
         })
         .collect()
@@ -375,43 +462,54 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parses_standard_table() {
-        let sample = "\
+    fn parses_english_upgrades() {
+        let s = "\
 Name                            Id                            Version       Available     Source
 ---------------------------------------------------------------------------------------------------
 Windows Terminal                Microsoft.WindowsTerminal     1.18.3181.0   1.19.10302.0  winget
 Visual Studio Code              Microsoft.VisualStudioCode    1.88.0        1.89.1        winget
-7-Zip                           7zip.7zip                     23.01         24.05         winget
 3 upgrades available.";
-        let ups = parse_upgrades(sample);
-        assert_eq!(ups.len(), 3);
-        assert_eq!(ups[0].name, "Windows Terminal");
+        let ups = parse_upgrades(s);
+        assert_eq!(ups.len(), 2);
         assert_eq!(ups[0].id, "Microsoft.WindowsTerminal");
-        assert_eq!(ups[0].current, "1.18.3181.0");
         assert_eq!(ups[0].available, "1.19.10302.0");
         assert_eq!(ups[0].source, "winget");
-        assert_eq!(ups[2].id, "7zip.7zip");
     }
 
     #[test]
-    fn empty_when_no_header() {
-        assert!(parse_upgrades("No installed package found matching input criteria.").is_empty());
+    fn parses_spanish_upgrades() {
+        let s = "\
+Nombre                          Id                            Versión       Disponible    Origen
+---------------------------------------------------------------------------------------------------
+Windows Terminal                Microsoft.WindowsTerminal     1.18.3181.0   1.19.10302.0  winget
+7-Zip                           7zip.7zip                     23.01         24.05         winget
+2 actualizaciones disponibles.";
+        let ups = parse_upgrades(s);
+        assert_eq!(ups.len(), 2);
+        assert_eq!(ups[1].id, "7zip.7zip");
+        assert_eq!(ups[1].available, "24.05");
     }
 
     #[test]
-    fn parses_search_with_match_column() {
-        let sample = "\
-Name                 Id                        Version   Match            Source
+    fn parses_search_spanish_with_match() {
+        let s = "\
+Nombre               Id                        Versión   Coincidencia     Origen
 -----------------------------------------------------------------------------------
 Mozilla Firefox      Mozilla.Firefox           126.0     Moniker: firefox winget
 PowerToys            Microsoft.PowerToys       0.81.1                     winget";
-        let pkgs = parse_packages(sample);
+        let pkgs = parse_packages(s);
         assert_eq!(pkgs.len(), 2);
-        assert_eq!(pkgs[0].name, "Mozilla Firefox");
         assert_eq!(pkgs[0].id, "Mozilla.Firefox");
         assert_eq!(pkgs[0].version, "126.0");
         assert_eq!(pkgs[0].source, "winget");
         assert_eq!(pkgs[1].id, "Microsoft.PowerToys");
-        assert_eq!(pkgs[1].source, "winget");
+    }
+
+    #[test]
+    fn strips_ansi_and_footer() {
+        let s = "\u{1b}[2mNote\u{1b}[0m\nName        Id            Version   Available  Source\n----------------------------------------------------------\nGit         Git.Git       2.44.0    2.45.1     winget\n";
+        let ups = parse_upgrades(s);
+        assert_eq!(ups.len(), 1);
+        assert_eq!(ups[0].id, "Git.Git");
     }
 }

@@ -20,22 +20,22 @@
 
       <nav class="nav">
         <button class="nav-item active" data-tab="updates">
-          <span class="nav-ico">⤓</span> Updates
+          <span class="nav-ico">⤓</span> <span data-i18n="nav.updates">Updates</span>
           <span class="badge" id="updateCount" hidden>0</span>
         </button>
         <button class="nav-item" data-tab="explore">
-          <span class="nav-ico">◎</span> Explore
+          <span class="nav-ico">◎</span> <span data-i18n="nav.explore">Explore</span>
         </button>
         <button class="nav-item" data-tab="schedule">
-          <span class="nav-ico">▦</span> Schedule
+          <span class="nav-ico">▦</span> <span data-i18n="nav.schedule">Schedule</span>
         </button>
         <button class="nav-item" data-tab="logs">
-          <span class="nav-ico">▸_</span> Logs
+          <span class="nav-ico">▸_</span> <span data-i18n="nav.logs">Logs</span>
         </button>
       </nav>
 
       <div class="sidebar-footer">
-        <span id="wingetStatus" class="winget-status">Checking winget…</span>
+        <span id="wingetStatus" class="winget-status">…</span>
       </div>
     </aside>
 
@@ -44,11 +44,16 @@
       <header class="topbar">
         <div class="search-global">
           <span class="search-ico">⌕</span>
-          <input type="text" id="globalSearch" placeholder="Search packages…" autocomplete="off" />
+          <input type="text" id="globalSearch" data-i18n-ph="search.global" placeholder="Search packages…" autocomplete="off" />
         </div>
         <div class="topbar-actions">
-          <button class="round-btn" id="settingsBtn" title="Settings">⚙</button>
-          <button class="round-btn" id="helpBtn" title="Help">?</button>
+          <button class="admin-btn" id="adminBtn" hidden data-i18n="admin.run" data-i18n-title="admin.run">⛊ Run as admin</button>
+          <select id="lang" class="lang-select" title="Language">
+            <option value="en">EN</option>
+            <option value="es">ES</option>
+          </select>
+          <button class="round-btn" id="settingsBtn" data-i18n-title="settings.title" title="Settings">⚙</button>
+          <button class="round-btn" id="helpBtn" data-i18n-title="help.title" title="Help">?</button>
         </div>
       </header>
 
@@ -58,97 +63,107 @@
         <section class="tab active" id="tab-updates">
           <header class="tab-head">
             <div>
-              <h1>Updates</h1>
-              <p class="muted" id="updatesSubtitle"><span class="info-dot">ⓘ</span> Check which packages can be updated.</p>
+              <h1 data-i18n="updates.title">Updates</h1>
+              <p class="muted" id="updatesSubtitle"></p>
             </div>
             <div class="actions">
-              <button class="btn ghost" id="refreshBtn"><span class="ico">⟳</span> Refresh</button>
-              <button class="btn primary" id="upgradeAllBtn" disabled><span class="ico">⤓</span> Update all</button>
+              <button class="btn ghost" id="refreshBtn"></button>
+              <button class="btn primary" id="upgradeAllBtn" disabled></button>
             </div>
           </header>
 
           <div class="toolbar" id="selectionBar" hidden>
-            <label class="check"><input type="checkbox" id="selectAll" /> Select all</label>
-            <button class="link-strong" id="upgradeSelectedBtn" disabled>Update selected →</button>
+            <label class="check"><input type="checkbox" id="selectAll" /> <span data-i18n="updates.selectAll">Select all</span></label>
+            <button class="link-strong" id="upgradeSelectedBtn" disabled></button>
           </div>
 
-          <div class="cards" id="updatesList">
-            <div class="empty" id="updatesEmpty">
-              <div class="empty-ico">✨</div>
-              <p>Press <strong>Refresh</strong> to check for updates.</p>
-            </div>
-          </div>
+          <div class="cards" id="updatesList"></div>
         </section>
 
         <!-- TAB: EXPLORE -->
         <section class="tab" id="tab-explore">
           <header class="tab-head">
             <div>
-              <h1>Explore packages</h1>
-              <p class="muted">Find new apps to install, or review what you already have.</p>
+              <h1 data-i18n="explore.title">Explore packages</h1>
+              <p class="muted" data-i18n="explore.sub">Find new apps to install, or review what you already have.</p>
             </div>
           </header>
 
           <div class="search-bar">
             <div class="seg">
-              <button class="seg-btn active" data-mode="search">Find new</button>
-              <button class="seg-btn" data-mode="installed">Installed</button>
+              <button class="seg-btn active" data-mode="search" data-i18n="explore.findNew">Find new</button>
+              <button class="seg-btn" data-mode="installed" data-i18n="explore.installed">Installed</button>
             </div>
-            <input type="text" id="searchInput" placeholder="Type a name, e.g. firefox…" autocomplete="off" />
-            <button class="btn primary" id="searchBtn">Search</button>
+            <input type="text" id="searchInput" data-i18n-ph="explore.searchPh" placeholder="Type a name, e.g. firefox…" autocomplete="off" />
+            <button class="btn primary" id="searchBtn" data-i18n="explore.search">Search</button>
           </div>
 
-          <div class="cards" id="exploreList">
-            <div class="empty" id="exploreEmpty">
-              <div class="empty-ico">⌕</div>
-              <p>Search a package by name to get started.</p>
+          <details class="advanced" id="advanced">
+            <summary><span class="adv-ico">⚙</span> <span data-i18n="adv.title">Advanced options</span></summary>
+            <div class="adv-body">
+              <div class="field">
+                <label data-i18n="adv.source">Source</label>
+                <select id="advSource">
+                  <option value="all" data-i18n="adv.srcAll">All sources</option>
+                  <option value="winget">winget</option>
+                  <option value="msstore" data-i18n="adv.srcStore">Microsoft Store</option>
+                </select>
+              </div>
+              <div class="field">
+                <label data-i18n="adv.mode">Install mode</label>
+                <select id="advMode">
+                  <option value="silent" data-i18n="adv.silent">Silent</option>
+                  <option value="interactive" data-i18n="adv.interactive">Interactive (show installer)</option>
+                </select>
+              </div>
+              <p class="adv-hint" data-i18n="adv.hint">Use Interactive if a package fails silently, or Microsoft Store for Store-only apps.</p>
             </div>
-          </div>
+          </details>
+
+          <div class="cards" id="exploreList"></div>
         </section>
 
         <!-- TAB: SCHEDULE -->
         <section class="tab" id="tab-schedule">
           <header class="tab-head">
             <div>
-              <h1>Schedule updates</h1>
-              <p class="muted">Create tasks that update everything automatically.</p>
+              <h1 data-i18n="sch.title">Schedule updates</h1>
+              <p class="muted" data-i18n="sch.sub">Create tasks that update everything automatically.</p>
             </div>
           </header>
 
           <div class="card form-card">
             <div class="field">
-              <label>Name</label>
-              <input type="text" id="schName" placeholder="e.g. Every-morning" value="Daily" />
+              <label data-i18n="sch.name">Name</label>
+              <input type="text" id="schName" value="Daily" />
             </div>
             <div class="field">
-              <label>Frequency</label>
+              <label data-i18n="sch.freq">Frequency</label>
               <select id="schFreq">
-                <option value="daily">Every day</option>
-                <option value="weekly">Every week</option>
-                <option value="monthly">Every month</option>
+                <option value="daily" data-i18n="sch.daily">Every day</option>
+                <option value="weekly" data-i18n="sch.weekly">Every week</option>
+                <option value="monthly" data-i18n="sch.monthly">Every month</option>
               </select>
             </div>
             <div class="field">
-              <label>Time</label>
+              <label data-i18n="sch.time">Time</label>
               <input type="time" id="schTime" value="03:00" />
             </div>
-            <button class="btn primary" id="createSchBtn">Create task</button>
+            <button class="btn primary" id="createSchBtn" data-i18n="sch.create">Create task</button>
           </div>
 
-          <h2 class="section-title">Active tasks</h2>
-          <div class="list" id="schedulesList">
-            <div class="empty"><p class="muted">No scheduled tasks yet.</p></div>
-          </div>
+          <h2 class="section-title" data-i18n="sch.active">Active tasks</h2>
+          <div class="list" id="schedulesList"></div>
         </section>
 
         <!-- TAB: LOGS -->
         <section class="tab" id="tab-logs">
           <header class="tab-head">
             <div>
-              <h1>Logs</h1>
-              <p class="muted">Live output from winget operations.</p>
+              <h1 data-i18n="logs.title">Logs</h1>
+              <p class="muted" data-i18n="logs.sub">Live output from winget operations.</p>
             </div>
-            <button class="btn ghost" id="clearLogBtn">Clear</button>
+            <button class="btn ghost" id="clearLogBtn" data-i18n="logs.clear">Clear</button>
           </header>
           <pre class="logbox" id="logBox"></pre>
         </section>

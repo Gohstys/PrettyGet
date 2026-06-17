@@ -1,8 +1,8 @@
 // PrettyGet — una interfaz bonita para winget
-// Evita que se abra una consola en la versión release.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod schedule;
+mod system;
 mod winget;
 
 fn main() {
@@ -19,7 +19,9 @@ fn main() {
             schedule::create_schedule,
             schedule::list_schedules,
             schedule::delete_schedule,
-            schedule::run_schedule_now
+            schedule::run_schedule_now,
+            system::is_elevated,
+            system::relaunch_as_admin
         ])
         .run(tauri::generate_context!())
         .expect("Error al iniciar PrettyGet");
