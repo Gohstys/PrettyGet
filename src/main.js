@@ -50,6 +50,20 @@ const I18N = {
     "log.updatingSel": "▶ Updating {n} selected package(s)…",
     "log.installing": "▶ Installing {x}…", "log.uninstalling": "▶ Uninstalling {x}…",
     "log.finished": "— Process finished (code {code}) —", "log.adminHint": "Tip: run as administrator to avoid a UAC prompt per app.",
+    "pro.nav": "Pro", "pro.title": "PrettyGet Pro", "pro.sub": "Power tools for power users and teams.", "pro.locked": "Requires Pro",
+    "lic.free": "Free edition", "lic.pro": "Pro · {edition}", "lic.hwid": "Hardware ID", "lic.tokenPh": "Paste your license key…",
+    "lic.activate": "Activate", "lic.deactivate": "Deactivate", "lic.customer": "Licensed to {who}", "lic.expires": "Expires {date}",
+    "lic.never": "never", "lic.activated": "License activated", "lic.removed": "License removed", "lic.needToken": "Paste a license key first",
+    "ss.title": "State Sync", "ss.sub": "Export and import your full winget package set.", "ss.exportJson": "Export JSON", "ss.exportYaml": "Export YAML",
+    "ss.import": "Import", "ss.importPh": "Exported JSON/YAML appears here, or paste to import…", "ss.imported": "Import finished (code {code})", "ss.needData": "Nothing to import",
+    "rd.title": "Remote Deploy", "rd.sub": "Run winget on remote machines (WinRM).", "rd.hostsPh": "Hosts (comma-separated)…",
+    "rd.argsPh": "winget args, e.g. upgrade --all", "rd.run": "Run", "rd.needHosts": "Enter at least one host", "rd.running": "Running on remote hosts…",
+    "iac.title": "IaC Generator", "iac.sub": "Turn a selection into PowerShell or Ansible.", "iac.install": "Install", "iac.upgrade": "Upgrade",
+    "iac.uninstall": "Uninstall", "iac.generate": "Generate", "iac.pkgsPh": "Package IDs, one per line…", "iac.needPkgs": "Add at least one package ID",
+    "dm.title": "Silent Daemon", "dm.sub": "Background Windows service for silent scheduled updates.", "dm.enabled": "Enabled", "dm.apply": "Apply",
+    "dm.uninstall": "Uninstall service", "dm.exePh": "Path to prettyget-daemon.exe…", "dm.hint": "Requires administrator. Use “Run as admin” first.",
+    "dm.needExe": "Enter the daemon .exe path", "dm.applied": "Daemon configured", "dm.uninstalled": "Service uninstalled",
+    "common.copy": "Copy", "common.copied": "Copied", "common.proRequired": "This feature requires PrettyGet Pro.",
   },
   es: {
     "nav.updates": "Actualizaciones", "nav.explore": "Explorar", "nav.schedule": "Programar", "nav.logs": "Registro",
@@ -86,6 +100,20 @@ const I18N = {
     "log.updatingSel": "▶ Actualizando {n} paquete(s) seleccionados…",
     "log.installing": "▶ Instalando {x}…", "log.uninstalling": "▶ Desinstalando {x}…",
     "log.finished": "— Proceso finalizado (código {code}) —", "log.adminHint": "Consejo: ejecuta como administrador para evitar el UAC por cada app.",
+    "pro.nav": "Pro", "pro.title": "PrettyGet Pro", "pro.sub": "Herramientas avanzadas para usuarios y equipos.", "pro.locked": "Requiere Pro",
+    "lic.free": "Edición gratuita", "lic.pro": "Pro · {edition}", "lic.hwid": "ID de hardware", "lic.tokenPh": "Pega tu clave de licencia…",
+    "lic.activate": "Activar", "lic.deactivate": "Desactivar", "lic.customer": "Licencia de {who}", "lic.expires": "Caduca {date}",
+    "lic.never": "nunca", "lic.activated": "Licencia activada", "lic.removed": "Licencia eliminada", "lic.needToken": "Pega primero una clave",
+    "ss.title": "Sincronización de estado", "ss.sub": "Exporta e importa todo tu conjunto de paquetes de winget.", "ss.exportJson": "Exportar JSON", "ss.exportYaml": "Exportar YAML",
+    "ss.import": "Importar", "ss.importPh": "Aquí aparece el JSON/YAML exportado, o pégalo para importar…", "ss.imported": "Importación finalizada (código {code})", "ss.needData": "Nada que importar",
+    "rd.title": "Despliegue remoto", "rd.sub": "Ejecuta winget en máquinas remotas (WinRM).", "rd.hostsPh": "Hosts (separados por comas)…",
+    "rd.argsPh": "args de winget, ej. upgrade --all", "rd.run": "Ejecutar", "rd.needHosts": "Introduce al menos un host", "rd.running": "Ejecutando en hosts remotos…",
+    "iac.title": "Generador IaC", "iac.sub": "Convierte una selección en PowerShell o Ansible.", "iac.install": "Instalar", "iac.upgrade": "Actualizar",
+    "iac.uninstall": "Desinstalar", "iac.generate": "Generar", "iac.pkgsPh": "Ids de paquetes, uno por línea…", "iac.needPkgs": "Añade al menos un Id",
+    "dm.title": "Daemon silencioso", "dm.sub": "Servicio en segundo plano para actualizaciones silenciosas programadas.", "dm.enabled": "Activado", "dm.apply": "Aplicar",
+    "dm.uninstall": "Desinstalar servicio", "dm.exePh": "Ruta a prettyget-daemon.exe…", "dm.hint": "Requiere administrador. Usa «Ejecutar como admin» primero.",
+    "dm.needExe": "Introduce la ruta del .exe del daemon", "dm.applied": "Daemon configurado", "dm.uninstalled": "Servicio desinstalado",
+    "common.copy": "Copiar", "common.copied": "Copiado", "common.proRequired": "Esta función requiere PrettyGet Pro.",
   },
 };
 function t(key, params) {
@@ -104,6 +132,8 @@ function applyI18n() {
   $("#searchInput").placeholder = exploreMode === "search" ? t("explore.searchPh") : t("explore.searchPhInstalled");
   renderUpgrades();
   renderExplore(lastExplore);
+  renderLicense();
+  applyGating();
 }
 function setLang(l) {
   lang = l;
@@ -118,6 +148,7 @@ function switchTab(tab) {
   $$(".nav-item").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
   $$(".tab").forEach((t) => t.classList.toggle("active", t.id === `tab-${tab}`));
   if (tab === "schedule") loadSchedules();
+  if (tab === "pro") loadEntitlements();
 }
 $$(".nav-item").forEach((btn) => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
 
@@ -409,6 +440,114 @@ async function loadSchedules() {
   } catch (err) { toast(String(err), "err"); }
 }
 
+// ============ Pro: license + features ============
+let ent = { pro: false, features: [], edition: null, customer: null, expires_at: null };
+
+async function loadEntitlements() {
+  try { ent = await invoke("get_entitlements"); } catch { ent = { pro: false, features: [] }; }
+  try { const h = await invoke("hardware_id"); $("#hwid").textContent = h || "—"; } catch {}
+  renderLicense();
+  applyGating();
+}
+function renderLicense() {
+  const badge = $("#licBadge");
+  const meta = $("#licMeta");
+  if (ent.pro) {
+    badge.textContent = t("lic.pro", { edition: ent.edition || "pro" });
+    badge.classList.add("pro");
+    const m = [];
+    if (ent.customer) m.push(t("lic.customer", { who: ent.customer }));
+    m.push(t("lic.expires", { date: ent.expires_at ? new Date(ent.expires_at * 1000).toLocaleDateString() : t("lic.never") }));
+    meta.textContent = m.join(" · ");
+    $("#deactivateBtn").hidden = false;
+  } else {
+    badge.textContent = t("lic.free");
+    badge.classList.remove("pro");
+    meta.textContent = "";
+    $("#deactivateBtn").hidden = true;
+  }
+}
+function applyGating() {
+  $$(".pro-panel").forEach((p) => {
+    const allowed = ent.pro && (ent.features || []).includes(p.dataset.pro);
+    p.classList.toggle("locked", !allowed);
+  });
+}
+
+$("#activateBtn").addEventListener("click", async () => {
+  const token = $("#licToken").value.trim();
+  if (!token) return toast(t("lic.needToken"), "err");
+  try {
+    ent = await invoke("activate_license", { token });
+    $("#licToken").value = "";
+    renderLicense(); applyGating();
+    toast(t("lic.activated"), "ok");
+  } catch (err) { toast(String(err), "err"); }
+});
+$("#deactivateBtn").addEventListener("click", async () => {
+  try { ent = await invoke("deactivate_license"); renderLicense(); applyGating(); toast(t("lic.removed"), "info"); }
+  catch (err) { toast(String(err), "err"); }
+});
+
+function copyFrom(sel) {
+  const el = $(sel);
+  el.removeAttribute("readonly"); el.select();
+  try { document.execCommand("copy"); toast(t("common.copied"), "ok"); } catch {}
+  if (el.id === "rdOut" || el.id === "iacOut") el.setAttribute("readonly", "");
+  window.getSelection().removeAllRanges();
+}
+
+// StateSync
+async function ssExport(format) {
+  try { $("#ssOut").value = await invoke("export_state", { format }); }
+  catch (err) { toast(String(err), "err"); }
+}
+$("#ssExportJson").addEventListener("click", () => ssExport("json"));
+$("#ssExportYaml").addEventListener("click", () => ssExport("yaml"));
+$("#ssImport").addEventListener("click", async () => {
+  const data = $("#ssOut").value.trim();
+  if (!data) return toast(t("ss.needData"), "err");
+  try { const code = await invoke("import_state", { data, silent: true }); toast(t("ss.imported", { code }), code === 0 ? "ok" : "err"); }
+  catch (err) { toast(String(err), "err"); }
+});
+$("#ssCopy").addEventListener("click", () => copyFrom("#ssOut"));
+
+// RemoteDeploy
+$("#rdRun").addEventListener("click", async () => {
+  const hosts = $("#rdHosts").value.split(",").map((s) => s.trim()).filter(Boolean).map((h) => ({ host: h, user: null }));
+  if (!hosts.length) return toast(t("rd.needHosts"), "err");
+  const wingetArgs = $("#rdArgs").value.trim().split(/\s+/).filter(Boolean);
+  $("#rdOut").value = t("rd.running");
+  try {
+    const results = await invoke("remote_run", { hosts, wingetArgs });
+    $("#rdOut").value = results.map((r) => `# ${r.host} (code ${r.code})\n${r.stdout}${r.stderr ? "\n[stderr] " + r.stderr : ""}`).join("\n\n");
+  } catch (err) { $("#rdOut").value = String(err); toast(String(err), "err"); }
+});
+
+// IaC
+$("#iacGen").addEventListener("click", async () => {
+  const packages = $("#iacPkgs").value.split("\n").map((s) => s.trim()).filter(Boolean);
+  if (!packages.length) return toast(t("iac.needPkgs"), "err");
+  const selection = { action: $("#iacAction").value, packages, silent: true };
+  const target = $("#iacTarget").value;
+  try { $("#iacOut").value = await invoke("generate_iac", { selection, target }); }
+  catch (err) { toast(String(err), "err"); }
+});
+$("#iacCopy").addEventListener("click", () => copyFrom("#iacOut"));
+
+// SilentDaemon
+$("#dmApply").addEventListener("click", async () => {
+  const daemonExe = $("#dmExe").value.trim();
+  if (!daemonExe) return toast(t("dm.needExe"), "err");
+  const config = { frequency: $("#dmFreq").value, time: $("#dmTime").value, only: [], enabled: $("#dmEnabled").checked };
+  try { await invoke("daemon_apply", { config, daemonExe }); toast(t("dm.applied"), "ok"); }
+  catch (err) { toast(String(err), "err"); }
+});
+$("#dmUninstall").addEventListener("click", async () => {
+  try { await invoke("daemon_uninstall"); toast(t("dm.uninstalled"), "info"); }
+  catch (err) { toast(String(err), "err"); }
+});
+
 // ============ Utils ============
 function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -420,4 +559,5 @@ loadAdvanced();
 applyI18n();
 checkWinget();
 checkElevated();
+loadEntitlements();
 refresh();

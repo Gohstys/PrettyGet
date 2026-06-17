@@ -29,8 +29,53 @@ pub struct Package {
     pub source: String,
 }
 
+/// Localiza el ejecutable de winget de forma robusta.
+///
+/// Importante: el alias `winget` vive en `%LOCALAPPDATA%\Microsoft\WindowsApps`,
+/// que está en el PATH del USUARIO pero a menudo NO en el de un proceso elevado.
+/// Por eso, si la app corre como administrador, hay que apuntar al `winget.exe`
+/// real dentro de `Program Files\WindowsApps`.
+fn winget_exe() -> std::path::PathBuf {
+    use std::path::PathBuf;
+
+    // 1) Ejecutable real del paquete (accesible y necesario cuando se corre elevado).
+    for var in ["ProgramFiles", "ProgramW6432"] {
+        if let Some(pf) = std::env::var_os(var) {
+            let wa = PathBuf::from(&pf).join("WindowsApps");
+            if let Ok(entries) = std::fs::read_dir(&wa) {
+                for e in entries.flatten() {
+                    let name = e.file_name();
+                    let name = name.to_string_lossy();
+                    if name.starts_with("Microsoft.DesktopAppInstaller_")
+                        && name.contains("8wekyb3d8bbwe")
+                    {
+                        let cand = e.path().join("winget.exe");
+                        if cand.exists() {
+                            return cand;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 2) Alias del usuario (funciona cuando NO se corre elevado).
+    if let Some(local) = std::env::var_os("LOCALAPPDATA") {
+        let p = PathBuf::from(&local)
+            .join("Microsoft")
+            .join("WindowsApps")
+            .join("winget.exe");
+        if p.exists() {
+            return p;
+        }
+    }
+
+    // 3) Último recurso: confiar en el PATH.
+    PathBuf::from("winget")
+}
+
 fn winget_cmd() -> Command {
-    let mut cmd = Command::new("winget");
+    let mut cmd = Command::new(winget_exe());
     #[cfg(windows)]
     cmd.creation_flags(CREATE_NO_WINDOW);
     cmd
@@ -61,7 +106,12 @@ pub async fn list_upgrades() -> Result<Vec<Upgrade>, String> {
             ])
             .output()
             .map_err(|e| format!("No se pudo ejecutar winget: {e}. ¿Está instalado?"))?;
-        Ok(parse_upgrades(&decode(&output.stdout)))
+        let text = decode(&output.stdout);
+        let ups = parse_upgrades(&text);
+        if ups.is_empty() && !output.status.success() {
+            return Err(winget_error(&output.stderr, &text));
+        }
+        Ok(ups)
     })
     .await
     .map_err(|e| e.to_string())?
@@ -103,7 +153,12 @@ pub async fn search_packages(query: String, source: String) -> Result<Vec<Packag
             .args(&refs)
             .output()
             .map_err(|e| format!("No se pudo ejecutar winget: {e}"))?;
-        Ok(parse_packages(&decode(&output.stdout)))
+        let text = decode(&output.stdout);
+        let pkgs = parse_packages(&text);
+        if pkgs.is_empty() && !output.status.success() {
+            return Err(winget_error(&output.stderr, &text));
+        }
+        Ok(pkgs)
     })
     .await
     .map_err(|e| e.to_string())?
@@ -127,10 +182,29 @@ pub async fn list_installed(query: String) -> Result<Vec<Package>, String> {
             .args(&refs)
             .output()
             .map_err(|e| format!("No se pudo ejecutar winget: {e}"))?;
-        Ok(parse_packages(&decode(&output.stdout)))
+        let text = decode(&output.stdout);
+        let pkgs = parse_packages(&text);
+        if pkgs.is_empty() && !output.status.success() {
+            return Err(winget_error(&output.stderr, &text));
+        }
+        Ok(pkgs)
     })
     .await
     .map_err(|e| e.to_string())?
+}
+
+/// Construye un mensaje de error legible a partir de stderr/stdout de winget.
+fn winget_error(stderr: &[u8], stdout_text: &str) -> String {
+    let err = decode(stderr);
+    let err = err.trim();
+    if !err.is_empty() {
+        return err.to_string();
+    }
+    let out = stdout_text.trim();
+    if !out.is_empty() {
+        return out.lines().take(3).collect::<Vec<_>>().join(" ");
+    }
+    "winget no devolvió resultados. Comprueba que está instalado y actualizado.".to_string()
 }
 
 // ===================== Comandos con streaming =====================
@@ -336,8 +410,41 @@ fn strip_ansi(s: &str) -> String {
 }
 
 fn decode(bytes: &[u8]) -> String {
-    let s = String::from_utf8_lossy(bytes);
+    let s = decode_bytes(bytes);
     strip_ansi(&s).replace('\r', "\n")
+}
+
+/// Decodifica la salida de winget tolerando UTF-8, UTF-16 (con/sin BOM) y BOM UTF-8.
+fn decode_bytes(bytes: &[u8]) -> String {
+    if bytes.starts_with(&[0xFF, 0xFE]) {
+        return utf16le(&bytes[2..]);
+    }
+    if bytes.starts_with(&[0xFE, 0xFF]) {
+        // UTF-16 big-endian
+        let u16s: Vec<u16> = bytes[2..]
+            .chunks_exact(2)
+            .map(|c| u16::from_be_bytes([c[0], c[1]]))
+            .collect();
+        return String::from_utf16_lossy(&u16s);
+    }
+    if bytes.starts_with(&[0xEF, 0xBB, 0xBF]) {
+        return String::from_utf8_lossy(&bytes[3..]).into_owned();
+    }
+    // Heurística: UTF-16LE sin BOM → muchos bytes nulos en posiciones impares.
+    let sample = &bytes[..bytes.len().min(64)];
+    let nul = sample.iter().filter(|&&b| b == 0).count();
+    if !sample.is_empty() && nul * 3 >= sample.len() {
+        return utf16le(bytes);
+    }
+    String::from_utf8_lossy(bytes).into_owned()
+}
+
+fn utf16le(bytes: &[u8]) -> String {
+    let u16s: Vec<u16> = bytes
+        .chunks_exact(2)
+        .map(|c| u16::from_le_bytes([c[0], c[1]]))
+        .collect();
+    String::from_utf16_lossy(&u16s)
 }
 
 fn slice_chars(line: &[char], start: usize, end: usize) -> String {

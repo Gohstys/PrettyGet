@@ -70,6 +70,19 @@ PrettyGet/
 - Notificaciones cuando hay actualizaciones nuevas.
 - Exportar/importar la lista de paquetes.
 
+## PrettyGet Pro
+
+Capa de pago modular en `src-tauri/src/pro/` (mismo binario; se desbloquea con una licencia firmada). Incluye pestaña **Pro** con activación de licencia y cuatro funciones: State Sync (export/import JSON/YAML), Remote Deploy (winget remoto vía WinRM), IaC Generator (PowerShell/Ansible) y Silent Daemon (servicio Windows). Detalles completos en [docs/PRO_ARCHITECTURE.md](docs/PRO_ARCHITECTURE.md).
+
+Herramientas (crates aparte en `tools/`):
+
+```bash
+cd tools/license-signer   && cargo run -- keygen        # genera el par de claves
+cd tools/prettyget-daemon && cargo build --release       # binario del servicio
+```
+
+Tras `keygen`, pega el array de la clave pública en `pro/license.rs` (`PUBLIC_KEY_BYTES`). Con la clave en ceros, toda licencia falla y la app queda en modo Free (seguro por defecto).
+
 ## Notas
 
 - Si una actualización requiere permisos de administrador, winget pedirá elevación (UAC).
