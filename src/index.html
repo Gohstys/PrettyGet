@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrettyGet</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">⬇</div>
+        <div class="brand-text">
+          <span class="brand-name">PrettyGet</span>
+          <span class="brand-sub">winget, pero bonito</span>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-tab="updates">
+          <span class="nav-ico">⤓</span> Updates
+          <span class="badge" id="updateCount" hidden>0</span>
+        </button>
+        <button class="nav-item" data-tab="explore">
+          <span class="nav-ico">◎</span> Explore
+        </button>
+        <button class="nav-item" data-tab="schedule">
+          <span class="nav-ico">▦</span> Schedule
+        </button>
+        <button class="nav-item" data-tab="logs">
+          <span class="nav-ico">▸_</span> Logs
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span id="wingetStatus" class="winget-status">Checking winget…</span>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <header class="topbar">
+        <div class="search-global">
+          <span class="search-ico">⌕</span>
+          <input type="text" id="globalSearch" placeholder="Search packages…" autocomplete="off" />
+        </div>
+        <div class="topbar-actions">
+          <button class="round-btn" id="settingsBtn" title="Settings">⚙</button>
+          <button class="round-btn" id="helpBtn" title="Help">?</button>
+        </div>
+      </header>
+
+      <main class="content">
+
+        <!-- TAB: UPDATES -->
+        <section class="tab active" id="tab-updates">
+          <header class="tab-head">
+            <div>
+              <h1>Updates</h1>
+              <p class="muted" id="updatesSubtitle"><span class="info-dot">ⓘ</span> Check which packages can be updated.</p>
+            </div>
+            <div class="actions">
+              <button class="btn ghost" id="refreshBtn"><span class="ico">⟳</span> Refresh</button>
+              <button class="btn primary" id="upgradeAllBtn" disabled><span class="ico">⤓</span> Update all</button>
+            </div>
+          </header>
+
+          <div class="toolbar" id="selectionBar" hidden>
+            <label class="check"><input type="checkbox" id="selectAll" /> Select all</label>
+            <button class="link-strong" id="upgradeSelectedBtn" disabled>Update selected →</button>
+          </div>
+
+          <div class="cards" id="updatesList">
+            <div class="empty" id="updatesEmpty">
+              <div class="empty-ico">✨</div>
+              <p>Press <strong>Refresh</strong> to check for updates.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: EXPLORE -->
+        <section class="tab" id="tab-explore">
+          <header class="tab-head">
+            <div>
+              <h1>Explore packages</h1>
+              <p class="muted">Find new apps to install, or review what you already have.</p>
+            </div>
+          </header>
+
+          <div class="search-bar">
+            <div class="seg">
+              <button class="seg-btn active" data-mode="search">Find new</button>
+              <button class="seg-btn" data-mode="installed">Installed</button>
+            </div>
+            <input type="text" id="searchInput" placeholder="Type a name, e.g. firefox…" autocomplete="off" />
+            <button class="btn primary" id="searchBtn">Search</button>
+          </div>
+
+          <div class="cards" id="exploreList">
+            <div class="empty" id="exploreEmpty">
+              <div class="empty-ico">⌕</div>
+              <p>Search a package by name to get started.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: SCHEDULE -->
+        <section class="tab" id="tab-schedule">
+          <header class="tab-head">
+            <div>
+              <h1>Schedule updates</h1>
+              <p class="muted">Create tasks that update everything automatically.</p>
+            </div>
+          </header>
+
+          <div class="card form-card">
+            <div class="field">
+              <label>Name</label>
+              <input type="text" id="schName" placeholder="e.g. Every-morning" value="Daily" />
+            </div>
+            <div class="field">
+              <label>Frequency</label>
+              <select id="schFreq">
+                <option value="daily">Every day</option>
+                <option value="weekly">Every week</option>
+                <option value="monthly">Every month</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Time</label>
+              <input type="time" id="schTime" value="03:00" />
+            </div>
+            <button class="btn primary" id="createSchBtn">Create task</button>
+          </div>
+
+          <h2 class="section-title">Active tasks</h2>
+          <div class="list" id="schedulesList">
+            <div class="empty"><p class="muted">No scheduled tasks yet.</p></div>
+          </div>
+        </section>
+
+        <!-- TAB: LOGS -->
+        <section class="tab" id="tab-logs">
+          <header class="tab-head">
+            <div>
+              <h1>Logs</h1>
+              <p class="muted">Live output from winget operations.</p>
+            </div>
+            <button class="btn ghost" id="clearLogBtn">Clear</button>
+          </header>
+          <pre class="logbox" id="logBox"></pre>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+  <script src="main.js"></script>
+</body>
+</html>
