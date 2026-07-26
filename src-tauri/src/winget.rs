@@ -38,7 +38,20 @@ pub struct Package {
 fn winget_exe() -> std::path::PathBuf {
     use std::path::PathBuf;
 
-    // 1) Ejecutable real del paquete (accesible y necesario cuando se corre elevado).
+    // 1) Alias del usuario por RUTA COMPLETA. Conserva la identidad MSIX del
+    //    paquete (necesaria para que winget acceda a sus fuentes/índice) y
+    //    funciona tanto elevado como sin elevar, sin depender del PATH.
+    if let Some(local) = std::env::var_os("LOCALAPPDATA") {
+        let p = PathBuf::from(&local)
+            .join("Microsoft")
+            .join("WindowsApps")
+            .join("winget.exe");
+        if p.exists() {
+            return p;
+        }
+    }
+
+    // 2) Fallback: ejecutable real del paquete (por si el alias no existe).
     for var in ["ProgramFiles", "ProgramW6432"] {
         if let Some(pf) = std::env::var_os(var) {
             let wa = PathBuf::from(&pf).join("WindowsApps");
@@ -56,17 +69,6 @@ fn winget_exe() -> std::path::PathBuf {
                     }
                 }
             }
-        }
-    }
-
-    // 2) Alias del usuario (funciona cuando NO se corre elevado).
-    if let Some(local) = std::env::var_os("LOCALAPPDATA") {
-        let p = PathBuf::from(&local)
-            .join("Microsoft")
-            .join("WindowsApps")
-            .join("winget.exe");
-        if p.exists() {
-            return p;
         }
     }
 

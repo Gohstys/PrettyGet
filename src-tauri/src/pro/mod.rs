@@ -11,5 +11,4 @@ pub mod license;
 pub mod remote_deploy;
 pub mod state_sync;
 
-pub use entitlements::{AppState, Entitlements, EntitlementsView};
-pub use license::Feature;
+pub use entitlements::AppState;

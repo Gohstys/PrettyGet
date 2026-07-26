@@ -9,7 +9,7 @@ use super::entitlements::{require, AppState, EntitlementsView};
 use super::iac::{DefaultIac, IacGenerator, Selection};
 use super::license::Feature;
 use super::remote_deploy::{PsRemotingExecutor, RemoteExecutor, RemoteHost, RemoteResult};
-use super::state_sync::{StateSync, WingetState, WingetStateSync};
+use super::state_sync::{StateSync, WingetStateSync};
 
 // ---------- Persistencia de la licencia ----------
 

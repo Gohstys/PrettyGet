@@ -1,5 +1,6 @@
-# Rust / Tauri
-/src-tauri/target/
+# Rust / Tauri — ignora CUALQUIER carpeta target (build de Rust)
+target/
+**/target/
 **/*.rs.bk
 
 # Node
