@@ -3,6 +3,7 @@ name = "prettyget"
 version = "0.1.0"
 description = "Una interfaz bonita para winget"
 authors = ["Gohsty"]
+license = "GPL-3.0-only"
 edition = "2021"
 rust-version = "1.77"
 

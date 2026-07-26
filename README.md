@@ -90,3 +90,7 @@ cd tools/prettyget-daemon && cargo build --release       # binario del servicio,
 
 - Si una actualización requiere permisos de administrador, winget pedirá elevación (UAC).
 - El parser cubre la salida estándar de winget; si Microsoft cambia el formato, ajusta `parse_upgrades` en `winget.rs` (tiene tests unitarios: `cargo test`).
+
+## Licencia
+
+[GPLv3](LICENSE). Puedes usar, modificar y redistribuir PrettyGet libremente, incluso comercialmente, pero cualquier versión modificada que distribuyas debe seguir siendo software libre bajo la misma licencia.
