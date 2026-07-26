@@ -50,7 +50,11 @@ const I18N = {
     "log.updatingSel": "▶ Updating {n} selected package(s)…",
     "log.installing": "▶ Installing {x}…", "log.uninstalling": "▶ Uninstalling {x}…",
     "log.finished": "— Process finished (code {code}) —", "log.adminHint": "Tip: run as administrator to avoid a UAC prompt per app.",
-    "pro.nav": "Pro", "pro.title": "PrettyGet Pro", "pro.sub": "Power tools for power users and teams.", "pro.locked": "Requires Pro",
+    "pro.nav": "Pro", "pro.title": "PrettyGet Pro", "pro.sub": "Power tools for power users and teams — free for everyone.", "pro.locked": "Requires Pro",
+    "donate.nav": "Donate", "donate.title": "Support PrettyGet", "donate.sub": "PrettyGet is free and always will be. If it's useful to you, consider supporting its development.",
+    "donate.sponsors.title": "GitHub Sponsors", "donate.sponsors.body": "Recurring or one-time support, right from your GitHub account.", "donate.sponsors.cta": "Sponsor on GitHub",
+    "donate.bmc.title": "Buy Me a Coffee", "donate.bmc.body": "A quick way to say thanks with a one-time contribution.", "donate.bmc.cta": "Buy me a coffee",
+    "donate.thanks": "Thank you for keeping PrettyGet free and ad-free. ❤️",
     "lic.free": "Free edition", "lic.pro": "Pro · {edition}", "lic.hwid": "Hardware ID", "lic.tokenPh": "Paste your license key…",
     "lic.activate": "Activate", "lic.deactivate": "Deactivate", "lic.customer": "Licensed to {who}", "lic.expires": "Expires {date}",
     "lic.never": "never", "lic.activated": "License activated", "lic.removed": "License removed", "lic.needToken": "Paste a license key first",
@@ -100,7 +104,11 @@ const I18N = {
     "log.updatingSel": "▶ Actualizando {n} paquete(s) seleccionados…",
     "log.installing": "▶ Instalando {x}…", "log.uninstalling": "▶ Desinstalando {x}…",
     "log.finished": "— Proceso finalizado (código {code}) —", "log.adminHint": "Consejo: ejecuta como administrador para evitar el UAC por cada app.",
-    "pro.nav": "Pro", "pro.title": "PrettyGet Pro", "pro.sub": "Herramientas avanzadas para usuarios y equipos.", "pro.locked": "Requiere Pro",
+    "pro.nav": "Pro", "pro.title": "PrettyGet Pro", "pro.sub": "Herramientas avanzadas para usuarios y equipos — gratis para todos.", "pro.locked": "Requiere Pro",
+    "donate.nav": "Donar", "donate.title": "Apoya a PrettyGet", "donate.sub": "PrettyGet es gratis y lo seguirá siendo. Si te resulta útil, valora apoyar su desarrollo.",
+    "donate.sponsors.title": "GitHub Sponsors", "donate.sponsors.body": "Apoyo recurrente o puntual, directamente desde tu cuenta de GitHub.", "donate.sponsors.cta": "Patrocinar en GitHub",
+    "donate.bmc.title": "Buy Me a Coffee", "donate.bmc.body": "Una forma rápida de decir gracias con una aportación puntual.", "donate.bmc.cta": "Invítame a un café",
+    "donate.thanks": "Gracias por mantener PrettyGet gratis y sin anuncios. ❤️",
     "lic.free": "Edición gratuita", "lic.pro": "Pro · {edition}", "lic.hwid": "ID de hardware", "lic.tokenPh": "Pega tu clave de licencia…",
     "lic.activate": "Activar", "lic.deactivate": "Desactivar", "lic.customer": "Licencia de {who}", "lic.expires": "Caduca {date}",
     "lic.never": "nunca", "lic.activated": "Licencia activada", "lic.removed": "Licencia eliminada", "lic.needToken": "Pega primero una clave",
@@ -469,7 +477,7 @@ function renderLicense() {
 }
 function applyGating() {
   $$(".pro-panel").forEach((p) => {
-    const allowed = ent.pro && (ent.features || []).includes(p.dataset.pro);
+    const allowed = (ent.features || []).includes(p.dataset.pro);
     p.classList.toggle("locked", !allowed);
   });
 }
@@ -546,6 +554,15 @@ $("#dmApply").addEventListener("click", async () => {
 $("#dmUninstall").addEventListener("click", async () => {
   try { await invoke("daemon_uninstall"); toast(t("dm.uninstalled"), "info"); }
   catch (err) { toast(String(err), "err"); }
+});
+
+// ============ Donate ============
+// Los enlaces se abren en el navegador del sistema (plugin opener), no dentro de la ventana de la app.
+$$(".donate-card a").forEach((a) => {
+  a.addEventListener("click", (e) => {
+    e.preventDefault();
+    invoke("plugin:opener|open_url", { url: a.href }).catch((err) => toast(String(err), "err"));
+  });
 });
 
 // ============ Utils ============

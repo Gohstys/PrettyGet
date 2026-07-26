@@ -2,7 +2,9 @@
 
 Una interfaz de escritorio **bonita** para `winget`. Actualiza todo tu sistema, mira qué se va a actualizar, sigue el progreso en vivo y programa actualizaciones automáticas. Construida con **Tauri** (Rust + web), tema oscuro minimal.
 
-![tema](https://img.shields.io/badge/tema-oscuro%20minimal-6d7cff) ![stack](https://img.shields.io/badge/stack-Tauri%20%2B%20Rust-9a6dff)
+**100% gratis, sin anuncios.** Si te resulta útil, puedes apoyar el desarrollo desde la pestaña **Donar** de la app (GitHub Sponsors / Buy Me a Coffee) — nunca es necesario para usar ninguna función.
+
+![tema](https://img.shields.io/badge/tema-oscuro%20minimal-6d7cff) ![stack](https://img.shields.io/badge/stack-Tauri%20%2B%20Rust-9a6dff) ![precio](https://img.shields.io/badge/precio-gratis-45d483)
 
 ## Funciones
 
@@ -12,6 +14,7 @@ Una interfaz de escritorio **bonita** para `winget`. Actualiza todo tu sistema, 
 - **Programar** — crea tareas en el Programador de tareas de Windows (cada día / semana / mes a una hora) que ejecutan `winget upgrade --all` en silencio. Puedes probarlas o eliminarlas desde la app.
 - **Idioma** — inglés por defecto, con selector EN/ES en la barra superior (se recuerda).
 - **Ejecutar como administrador** — botón que reinicia la app elevada una sola vez, para evitar el aviso UAC por cada paquete al actualizar.
+- **Donar** — pestaña con enlaces a GitHub Sponsors y Buy Me a Coffee para quien quiera apoyar el proyecto. Totalmente opcional.
 
 ## Requisitos
 
@@ -70,18 +73,18 @@ PrettyGet/
 - Notificaciones cuando hay actualizaciones nuevas.
 - Exportar/importar la lista de paquetes.
 
-## PrettyGet Pro
+## PrettyGet Pro (ahora gratis para todos)
 
-Capa de pago modular en `src-tauri/src/pro/` (mismo binario; se desbloquea con una licencia firmada). Incluye pestaña **Pro** con activación de licencia y cuatro funciones: State Sync (export/import JSON/YAML), Remote Deploy (winget remoto vía WinRM), IaC Generator (PowerShell/Ansible) y Silent Daemon (servicio Windows). Detalles completos en [docs/PRO_ARCHITECTURE.md](docs/PRO_ARCHITECTURE.md).
+Cuatro funciones avanzadas viven en `src-tauri/src/pro/`: State Sync (export/import JSON/YAML), Remote Deploy (winget remoto vía WinRM), IaC Generator (PowerShell/Ansible) y Silent Daemon (servicio Windows). Se muestran en la pestaña **Pro** de la app y **están desbloqueadas para todo el mundo**, sin licencia.
 
-Herramientas (crates aparte en `tools/`):
+Por debajo sigue existiendo un sistema completo de licencias firmadas (ed25519) que en su día pensé usar para un modelo de pago; se mantiene intacto pero inactivo tras el interruptor `FREE_FOR_ALL` en `pro/entitlements.rs`, por si en el futuro quisiera reactivarlo. Detalles completos en [docs/PRO_ARCHITECTURE.md](docs/PRO_ARCHITECTURE.md).
+
+Herramientas de esa capa (crates aparte en `tools/`, no forman parte del bundle de la app):
 
 ```bash
-cd tools/license-signer   && cargo run -- keygen        # genera el par de claves
-cd tools/prettyget-daemon && cargo build --release       # binario del servicio
+cd tools/license-signer   && cargo run -- keygen        # genera el par de claves (solo si se reactivara el modelo de pago)
+cd tools/prettyget-daemon && cargo build --release       # binario del servicio, usado por Silent Daemon
 ```
-
-Tras `keygen`, pega el array de la clave pública en `pro/license.rs` (`PUBLIC_KEY_BYTES`). Con la clave en ceros, toda licencia falla y la app queda en modo Free (seguro por defecto).
 
 ## Notas
 

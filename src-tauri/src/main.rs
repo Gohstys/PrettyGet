@@ -10,6 +10,8 @@ use tauri::Manager;
 
 fn main() {
     tauri::Builder::default()
+        // Abre enlaces externos (pestaña Donar) en el navegador del sistema.
+        .plugin(tauri_plugin_opener::init())
         // Estado global compartido (nivel de licencia / entitlements).
         .manage(pro::AppState::new())
         .setup(|app| {

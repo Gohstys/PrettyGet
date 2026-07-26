@@ -222,6 +222,16 @@ input[type=checkbox] { width: 17px; height: 17px; accent-color: var(--accent); c
 .pro-text:focus { outline: none; border-color: var(--accent); }
 .pro-text + .pro-text { margin-top: 10px; }
 
+/* ---------- Donate ---------- */
+.nav-donate { color: var(--red); }
+.nav-donate .nav-ico { color: var(--red); }
+.donate-cards { margin-bottom: 22px; }
+.donate-card { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.donate-ico { font-size: 26px; }
+.donate-card .section-title { margin: 0; }
+.donate-card .btn { text-decoration: none; margin-top: 6px; }
+.donate-thanks { text-align: center; color: var(--muted); font-size: 13.5px; }
+
 /* ---------- Logs ---------- */
 .logbox { background: #08090d; border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; height: calc(100vh - 210px); overflow-y: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.75; color: #b9c0d4; white-space: pre-wrap; word-break: break-word; user-select: text; }
 
