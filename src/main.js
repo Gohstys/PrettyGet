@@ -239,7 +239,14 @@ function colorFor(name) {
 }
 function iconHtml(pkg) {
   const letter = (pkg.name || pkg.id || "?").trim().charAt(0).toUpperCase() || "?";
-  return `<div class="app-icon" style="background:${colorFor(pkg.name || pkg.id)}"><span>${esc(letter)}</span></div>`;
+  // Sin estilo en línea (a propósito: permite una CSP estricta sin 'unsafe-inline').
+  // El color de fondo se aplica en JS después de insertar el HTML, ver applyIconColors().
+  return `<div class="app-icon" data-seed="${esc(pkg.name || pkg.id)}"><span>${esc(letter)}</span></div>`;
+}
+function applyIconColors(root) {
+  root.querySelectorAll(".app-icon[data-seed]").forEach((el) => {
+    el.style.background = colorFor(el.dataset.seed);
+  });
 }
 
 // ============ Status / admin ============
@@ -297,6 +304,7 @@ function renderUpgrades() {
       <div class="ver-box"><span class="v-old">${esc(u.current)}</span><span class="v-arrow">→</span><span class="v-new">${esc(u.available)}</span></div>
       <div class="card-bottom"><span class="pill">${esc(u.source) || "winget"}</span><button class="card-action upgradeOne" data-id="${esc(u.id)}">${t("btn.update")}</button></div>
     </div>`).join("");
+  applyIconColors(list);
   $$(".upgradeOne").forEach((b) => b.addEventListener("click", () => upgradeOne(b.dataset.id)));
   $$(".rowChk").forEach((c) => c.addEventListener("change", updateSelected));
   $("#selectAll").checked = false;
@@ -391,6 +399,7 @@ function renderExplore(pkgs, keepEmpty) {
           : `<button class="card-action pkgInstall" data-id="${esc(p.id)}" data-name="${esc(p.name)}">${t("btn.install")}</button>`}
       </div>
     </div>`).join("");
+  applyIconColors(list);
   $$(".pkgInstall").forEach((b) => b.addEventListener("click", () => runPkg("install_package", { id: b.dataset.id, source: advSource(), silent: advSilent() }, b.dataset.name, "log.installing")));
   $$(".pkgUninstall").forEach((b) => b.addEventListener("click", () => runPkg("uninstall_package", { id: b.dataset.id, silent: advSilent() }, b.dataset.name, "log.uninstalling")));
 }
