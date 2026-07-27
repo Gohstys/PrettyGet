@@ -6,22 +6,12 @@ mod schedule;
 mod system;
 mod winget;
 
-use tauri::Manager;
-
 fn main() {
     tauri::Builder::default()
         // Abre enlaces externos (pestaña Donar) en el navegador del sistema.
         .plugin(tauri_plugin_opener::init())
-        // Estado global compartido (nivel de licencia / entitlements).
-        .manage(pro::AppState::new())
         // PID del proceso winget en curso, para poder abortarlo.
         .manage(winget::RunningJob::default())
-        .setup(|app| {
-            // Carga y valida la licencia guardada al arrancar (modo Free si falla).
-            let state = app.state::<pro::AppState>();
-            pro::commands::load_on_startup(&state);
-            Ok(())
-        })
         .invoke_handler(tauri::generate_handler![
             // --- Free (core) ---
             winget::list_upgrades,
@@ -39,12 +29,7 @@ fn main() {
             schedule::run_schedule_now,
             system::is_elevated,
             system::relaunch_as_admin,
-            // --- Licencia / entitlements ---
-            pro::commands::activate_license,
-            pro::commands::deactivate_license,
-            pro::commands::get_entitlements,
-            pro::commands::hardware_id,
-            // --- Pro (con feature gating dentro de cada comando) ---
+            // --- Advanced ---
             pro::commands::export_state,
             pro::commands::import_state,
             pro::commands::remote_run,

@@ -8,6 +8,14 @@
 use serde::{Deserialize, Serialize};
 use std::io::Write;
 use std::process::Command;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+fn now_unix() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0)
+}
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
@@ -68,7 +76,7 @@ fn winget() -> Command {
 impl StateSync for WingetStateSync {
     fn export(&self) -> Result<WingetState, String> {
         // `winget export` escribe a un archivo; usamos uno temporal.
-        let tmp = std::env::temp_dir().join(format!("pg-export-{}.json", super::license::now_unix()));
+        let tmp = std::env::temp_dir().join(format!("pg-export-{}.json", now_unix()));
         let out = winget()
             .args([
                 "export",
@@ -90,7 +98,7 @@ impl StateSync for WingetStateSync {
     fn import(&self, state: &WingetState, silent: bool) -> Result<i32, String> {
         // Reconstruimos el formato que espera `winget import` y lo escribimos a temp.
         let doc = to_winget_export(state);
-        let tmp = std::env::temp_dir().join(format!("pg-import-{}.json", super::license::now_unix()));
+        let tmp = std::env::temp_dir().join(format!("pg-import-{}.json", now_unix()));
         {
             let mut f = std::fs::File::create(&tmp).map_err(|e| e.to_string())?;
             f.write_all(doc.as_bytes()).map_err(|e| e.to_string())?;
@@ -146,7 +154,7 @@ fn parse_winget_export(raw: &str) -> WingetState {
     }
     WingetState {
         schema: 1,
-        exported_at: super::license::now_unix(),
+        exported_at: now_unix(),
         packages,
     }
 }

@@ -55,7 +55,7 @@ impl IacGenerator for DefaultIac {
             " --accept-source-agreements"
         };
         let mut out = String::new();
-        out.push_str("# Generado por PrettyGet Pro — IaC\n");
+        out.push_str("# Generado por PrettyGet — IaC\n");
         out.push_str("#Requires -RunAsAdministrator\n");
         out.push_str("$ErrorActionPreference = 'Continue'\n\n");
         for id in &sel.packages {
@@ -75,7 +75,7 @@ impl IacGenerator for DefaultIac {
             "--accept-source-agreements"
         };
         let mut out = String::new();
-        out.push_str("# Generado por PrettyGet Pro — IaC\n");
+        out.push_str("# Generado por PrettyGet — IaC\n");
         out.push_str("- name: PrettyGet winget deployment\n");
         out.push_str("  hosts: windows\n");
         out.push_str("  gather_facts: false\n");

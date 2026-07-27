@@ -1,14 +1,8 @@
-// Capa Pro de PrettyGet. Todo lo de pago vive aquí, aislado del core gratuito.
-// El gating es en tiempo de ejecución: el mismo binario es Free hasta que se
-// activa una licencia válida.
+// Funciones avanzadas de PrettyGet (pestaña "Advanced"): State Sync, Remote
+// Deploy, IaC Generator y Silent Daemon. Libres para todo el mundo.
 
 pub mod commands;
 pub mod daemon;
-pub mod entitlements;
-pub mod hwid;
 pub mod iac;
-pub mod license;
 pub mod remote_deploy;
 pub mod state_sync;
-
-pub use entitlements::AppState;

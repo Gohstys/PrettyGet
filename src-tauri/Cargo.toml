@@ -15,14 +15,7 @@ tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"    # abre enlaces externos (pestaña Donar) en el navegador del sistema
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-
-# --- Capa Pro ---
-ed25519-dalek = "2"          # verificación de licencias (solo clave pública)
-base64 = "0.22"              # codificación del token de licencia
-sha2 = "0.10"               # hash del ID de hardware
 serde_yaml = "0.9"           # StateSync: export/import en YAML
-[target.'cfg(windows)'.dependencies]
-winreg = "0.52"              # leer MachineGuid para el HWID
 
 [profile.release]
 panic = "abort"

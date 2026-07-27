@@ -190,27 +190,10 @@
             </div>
           </header>
 
-          <!-- License (hidden for now: everything is unlocked for free, see FREE_FOR_ALL in pro/entitlements.rs) -->
-          <div class="card lic-card" hidden>
-            <div class="lic-head">
-              <div>
-                <div class="lic-badge" id="licBadge" data-i18n="lic.free">Free edition</div>
-                <div class="lic-meta" id="licMeta"></div>
-              </div>
-              <div class="lic-hwid"><span data-i18n="lic.hwid">Hardware ID</span>: <code id="hwid">—</code></div>
-            </div>
-            <div class="lic-activate">
-              <input type="text" id="licToken" data-i18n-ph="lic.tokenPh" placeholder="Paste your license key…" autocomplete="off" />
-              <button class="btn primary" id="activateBtn" data-i18n="lic.activate">Activate</button>
-              <button class="btn ghost" id="deactivateBtn" data-i18n="lic.deactivate" hidden>Deactivate</button>
-            </div>
-          </div>
-
           <!-- StateSync -->
-          <div class="card pro-panel" data-pro="state_sync">
+          <div class="card pro-panel">
             <div class="pro-panel-head">
               <h2 class="section-title" data-i18n="ss.title">State Sync</h2>
-              <span class="lock-pill" data-i18n="pro.locked">Requires Pro</span>
             </div>
             <p class="muted" data-i18n="ss.sub">Export and import your full winget package set.</p>
             <div class="pro-row">
@@ -223,10 +206,9 @@
           </div>
 
           <!-- RemoteDeploy -->
-          <div class="card pro-panel" data-pro="remote_deploy">
+          <div class="card pro-panel">
             <div class="pro-panel-head">
               <h2 class="section-title" data-i18n="rd.title">Remote Deploy</h2>
-              <span class="lock-pill" data-i18n="pro.locked">Requires Pro</span>
             </div>
             <p class="muted" data-i18n="rd.sub">Run winget on remote machines (WinRM).</p>
             <div class="pro-row">
@@ -238,10 +220,9 @@
           </div>
 
           <!-- IaC -->
-          <div class="card pro-panel" data-pro="iac_generator">
+          <div class="card pro-panel">
             <div class="pro-panel-head">
               <h2 class="section-title" data-i18n="iac.title">IaC Generator</h2>
-              <span class="lock-pill" data-i18n="pro.locked">Requires Pro</span>
             </div>
             <p class="muted" data-i18n="iac.sub">Turn a selection into PowerShell or Ansible.</p>
             <div class="pro-row">
@@ -262,10 +243,9 @@
           </div>
 
           <!-- SilentDaemon -->
-          <div class="card pro-panel" data-pro="silent_daemon">
+          <div class="card pro-panel">
             <div class="pro-panel-head">
               <h2 class="section-title" data-i18n="dm.title">Silent Daemon</h2>
-              <span class="lock-pill" data-i18n="pro.locked">Requires Pro</span>
             </div>
             <p class="muted" data-i18n="dm.sub">Background Windows service for silent scheduled updates.</p>
             <div class="adv-body">

@@ -52,14 +52,11 @@ const I18N = {
     "log.updatingSel": "▶ Updating {n} selected package(s)…",
     "log.installing": "▶ Installing {x}…", "log.uninstalling": "▶ Uninstalling {x}…",
     "log.finished": "— Process finished (code {code}) —", "log.adminHint": "Tip: run as administrator to avoid a UAC prompt per app.",
-    "pro.nav": "Advanced", "pro.title": "Advanced tools", "pro.sub": "Power tools for power users and teams — free for everyone.", "pro.locked": "Requires Pro",
+    "pro.nav": "Advanced", "pro.title": "Advanced tools", "pro.sub": "Power tools for power users and teams — free for everyone.",
     "donate.nav": "Donate", "donate.title": "Support PrettyGet", "donate.sub": "PrettyGet is free and always will be. If it's useful to you, consider supporting its development.",
     "donate.sponsors.title": "GitHub Sponsors", "donate.sponsors.body": "Recurring or one-time support, right from your GitHub account.", "donate.sponsors.cta": "Sponsor on GitHub",
     "donate.bmc.title": "Buy Me a Coffee", "donate.bmc.body": "A quick way to say thanks with a one-time contribution.", "donate.bmc.cta": "Buy me a coffee",
     "donate.thanks": "Thank you for keeping PrettyGet free and ad-free. ❤️",
-    "lic.free": "Free edition", "lic.pro": "Pro · {edition}", "lic.hwid": "Hardware ID", "lic.tokenPh": "Paste your license key…",
-    "lic.activate": "Activate", "lic.deactivate": "Deactivate", "lic.customer": "Licensed to {who}", "lic.expires": "Expires {date}",
-    "lic.never": "never", "lic.activated": "License activated", "lic.removed": "License removed", "lic.needToken": "Paste a license key first",
     "ss.title": "State Sync", "ss.sub": "Export and import your full winget package set.", "ss.exportJson": "Export JSON", "ss.exportYaml": "Export YAML",
     "ss.import": "Import", "ss.importPh": "Exported JSON/YAML appears here, or paste to import…", "ss.imported": "Import finished (code {code})", "ss.needData": "Nothing to import",
     "rd.title": "Remote Deploy", "rd.sub": "Run winget on remote machines (WinRM).", "rd.hostsPh": "Hosts (comma-separated)…",
@@ -69,7 +66,7 @@ const I18N = {
     "dm.title": "Silent Daemon", "dm.sub": "Background Windows service for silent scheduled updates.", "dm.enabled": "Enabled", "dm.apply": "Apply",
     "dm.uninstall": "Uninstall service", "dm.exePh": "Path to prettyget-daemon.exe…", "dm.hint": "Requires administrator. Use “Run as admin” first.",
     "dm.needExe": "Enter the daemon .exe path", "dm.applied": "Daemon configured", "dm.uninstalled": "Service uninstalled",
-    "common.copy": "Copy", "common.copied": "Copied", "common.proRequired": "This feature requires PrettyGet Pro.",
+    "common.copy": "Copy", "common.copied": "Copied",
   },
   es: {
     "nav.updates": "Actualizaciones", "nav.explore": "Explorar", "nav.schedule": "Programar", "nav.logs": "Registro",
@@ -107,14 +104,11 @@ const I18N = {
     "log.updatingSel": "▶ Actualizando {n} paquete(s) seleccionados…",
     "log.installing": "▶ Instalando {x}…", "log.uninstalling": "▶ Desinstalando {x}…",
     "log.finished": "— Proceso finalizado (código {code}) —", "log.adminHint": "Consejo: ejecuta como administrador para evitar el UAC por cada app.",
-    "pro.nav": "Avanzado", "pro.title": "Herramientas avanzadas", "pro.sub": "Herramientas avanzadas para usuarios y equipos — gratis para todos.", "pro.locked": "Requiere Pro",
+    "pro.nav": "Avanzado", "pro.title": "Herramientas avanzadas", "pro.sub": "Herramientas avanzadas para usuarios y equipos — gratis para todos.",
     "donate.nav": "Donar", "donate.title": "Apoya a PrettyGet", "donate.sub": "PrettyGet es gratis y lo seguirá siendo. Si te resulta útil, valora apoyar su desarrollo.",
     "donate.sponsors.title": "GitHub Sponsors", "donate.sponsors.body": "Apoyo recurrente o puntual, directamente desde tu cuenta de GitHub.", "donate.sponsors.cta": "Patrocinar en GitHub",
     "donate.bmc.title": "Buy Me a Coffee", "donate.bmc.body": "Una forma rápida de decir gracias con una aportación puntual.", "donate.bmc.cta": "Invítame a un café",
     "donate.thanks": "Gracias por mantener PrettyGet gratis y sin anuncios. ❤️",
-    "lic.free": "Edición gratuita", "lic.pro": "Pro · {edition}", "lic.hwid": "ID de hardware", "lic.tokenPh": "Pega tu clave de licencia…",
-    "lic.activate": "Activar", "lic.deactivate": "Desactivar", "lic.customer": "Licencia de {who}", "lic.expires": "Caduca {date}",
-    "lic.never": "nunca", "lic.activated": "Licencia activada", "lic.removed": "Licencia eliminada", "lic.needToken": "Pega primero una clave",
     "ss.title": "Sincronización de estado", "ss.sub": "Exporta e importa todo tu conjunto de paquetes de winget.", "ss.exportJson": "Exportar JSON", "ss.exportYaml": "Exportar YAML",
     "ss.import": "Importar", "ss.importPh": "Aquí aparece el JSON/YAML exportado, o pégalo para importar…", "ss.imported": "Importación finalizada (código {code})", "ss.needData": "Nada que importar",
     "rd.title": "Despliegue remoto", "rd.sub": "Ejecuta winget en máquinas remotas (WinRM).", "rd.hostsPh": "Hosts (separados por comas)…",
@@ -124,7 +118,7 @@ const I18N = {
     "dm.title": "Daemon silencioso", "dm.sub": "Servicio en segundo plano para actualizaciones silenciosas programadas.", "dm.enabled": "Activado", "dm.apply": "Aplicar",
     "dm.uninstall": "Desinstalar servicio", "dm.exePh": "Ruta a prettyget-daemon.exe…", "dm.hint": "Requiere administrador. Usa «Ejecutar como admin» primero.",
     "dm.needExe": "Introduce la ruta del .exe del daemon", "dm.applied": "Daemon configurado", "dm.uninstalled": "Servicio desinstalado",
-    "common.copy": "Copiar", "common.copied": "Copiado", "common.proRequired": "Esta función requiere PrettyGet Pro.",
+    "common.copy": "Copiar", "common.copied": "Copiado",
   },
 };
 function t(key, params) {
@@ -143,8 +137,6 @@ function applyI18n() {
   $("#searchInput").placeholder = exploreMode === "search" ? t("explore.searchPh") : t("explore.searchPhInstalled");
   renderUpgrades();
   renderExplore(lastExplore);
-  renderLicense();
-  applyGating();
 }
 function setLang(l) {
   lang = l;
@@ -159,7 +151,6 @@ function switchTab(tab) {
   $$(".nav-item").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
   $$(".tab").forEach((t) => t.classList.toggle("active", t.id === `tab-${tab}`));
   if (tab === "schedule") loadSchedules();
-  if (tab === "pro") loadEntitlements();
 }
 $$(".nav-item").forEach((btn) => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
 
@@ -488,55 +479,6 @@ async function loadSchedules() {
   } catch (err) { toast(String(err), "err"); }
 }
 
-// ============ Pro: license + features ============
-let ent = { pro: false, features: [], edition: null, customer: null, expires_at: null };
-
-async function loadEntitlements() {
-  try { ent = await invoke("get_entitlements"); } catch { ent = { pro: false, features: [] }; }
-  try { const h = await invoke("hardware_id"); $("#hwid").textContent = h || "—"; } catch {}
-  renderLicense();
-  applyGating();
-}
-function renderLicense() {
-  const badge = $("#licBadge");
-  const meta = $("#licMeta");
-  if (ent.pro) {
-    badge.textContent = t("lic.pro", { edition: ent.edition || "pro" });
-    badge.classList.add("pro");
-    const m = [];
-    if (ent.customer) m.push(t("lic.customer", { who: ent.customer }));
-    m.push(t("lic.expires", { date: ent.expires_at ? new Date(ent.expires_at * 1000).toLocaleDateString() : t("lic.never") }));
-    meta.textContent = m.join(" · ");
-    $("#deactivateBtn").hidden = false;
-  } else {
-    badge.textContent = t("lic.free");
-    badge.classList.remove("pro");
-    meta.textContent = "";
-    $("#deactivateBtn").hidden = true;
-  }
-}
-function applyGating() {
-  $$(".pro-panel").forEach((p) => {
-    const allowed = (ent.features || []).includes(p.dataset.pro);
-    p.classList.toggle("locked", !allowed);
-  });
-}
-
-$("#activateBtn").addEventListener("click", async () => {
-  const token = $("#licToken").value.trim();
-  if (!token) return toast(t("lic.needToken"), "err");
-  try {
-    ent = await invoke("activate_license", { token });
-    $("#licToken").value = "";
-    renderLicense(); applyGating();
-    toast(t("lic.activated"), "ok");
-  } catch (err) { toast(String(err), "err"); }
-});
-$("#deactivateBtn").addEventListener("click", async () => {
-  try { ent = await invoke("deactivate_license"); renderLicense(); applyGating(); toast(t("lic.removed"), "info"); }
-  catch (err) { toast(String(err), "err"); }
-});
-
 function copyFrom(sel) {
   const el = $(sel);
   el.removeAttribute("readonly"); el.select();
@@ -616,5 +558,4 @@ loadAdvanced();
 applyI18n();
 checkWinget();
 checkElevated();
-loadEntitlements();
 refresh();

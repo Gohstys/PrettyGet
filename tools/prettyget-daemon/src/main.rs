@@ -2,7 +2,7 @@
 //
 // Corre como LocalSystem (sin UAC, sin sesión iniciada) y ejecuta
 // `winget upgrade --all` (o solo los Ids configurados) según una ventana
-// horaria. La app PrettyGet Pro lo instala/configura vía `sc.exe` y escribe
+// horaria. La app PrettyGet lo instala/configura vía `sc.exe` y escribe
 // %ProgramData%\PrettyGet\daemon.json.
 //
 // Compilar:  cd tools/prettyget-daemon && cargo build --release
