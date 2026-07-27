@@ -1,7 +1,7 @@
 [package]
 name = "prettyget"
-version = "0.1.0"
-description = "Una interfaz bonita para winget"
+version = "0.1.2"
+description = "A clean desktop front-end for winget"
 authors = ["Gohsty"]
 license = "GPL-3.0-only"
 edition = "2021"
