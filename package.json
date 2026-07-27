@@ -1,7 +1,7 @@
 {
   "name": "prettyget",
-  "version": "0.1.0",
-  "description": "Una interfaz bonita para winget: actualiza, busca y programa tus paquetes de Windows.",
+  "version": "0.1.2",
+  "description": "A clean desktop front-end for winget: see what is outdated, update it, and schedule it.",
   "license": "GPL-3.0-only",
   "private": true,
   "scripts": {

@@ -5,7 +5,8 @@ target/
 
 # Node
 /node_modules/
-package-lock.json
+# package-lock.json NO se ignora: sin el, cada build de CI resuelve
+# una version distinta del CLI de Tauri y los builds dejan de ser reproducibles.
 
 # Sistema
 .DS_Store
