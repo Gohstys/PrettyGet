@@ -25,6 +25,15 @@ It's built with **Tauri** (a Rust backend driving a lightweight web frontend), s
 
 **100% free, no ads.** If you find it useful, you can support development from the **Donate** tab (GitHub Sponsors / Buy Me a Coffee) — never required to use any feature.
 
+## A note on Windows security warnings
+
+PrettyGet isn't code-signed yet, so Windows may flag the installer/exe the first time you run it — either a SmartScreen warning ("Windows protected your PC") or, on Windows 11 with **Smart App Control** enabled, an outright block with no "run anyway" option. This isn't malware; Windows just doesn't yet recognize the publisher, since that requires a paid or approved code-signing certificate.
+
+- **SmartScreen warning**: click **More info** → **Run anyway**.
+- **Smart App Control block**: it can only be turned off while still in "Evaluation" mode (Settings → Privacy & security → Windows Security → App & browser control); once it's switched to "On", disabling it requires reinstalling Windows. Building PrettyGet yourself from source (see below) avoids this entirely.
+
+Free code signing through [SignPath Foundation](https://signpath.io/solutions/open-source-community)'s open source program is in progress — this note will be removed once releases are signed.
+
 ## Requirements
 
 1. **Windows 10/11** with **winget** installed (comes with *App Installer* from the Microsoft Store).
