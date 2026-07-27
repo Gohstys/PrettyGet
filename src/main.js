@@ -228,20 +228,10 @@ listen("winget-done", (e) => {
   refresh();
 });
 
-// ============ App icons (hybrid) ============
-const DOMAIN_MAP = {
-  microsoft: "microsoft.com", google: "google.com", mozilla: "mozilla.org", spotify: "spotify.com",
-  apple: "apple.com", adobe: "adobe.com", valve: "valvesoftware.com", discord: "discord.com",
-  zoom: "zoom.us", notion: "notion.so", slack: "slack.com", vlc: "videolan.org", videolan: "videolan.org",
-  "7zip": "7-zip.org", git: "git-scm.com", python: "python.org", oracle: "oracle.com", nvidia: "nvidia.com",
-  brave: "brave.com", opera: "opera.com", telegram: "telegram.org", jetbrains: "jetbrains.com",
-  docker: "docker.com", obsproject: "obsproject.com", audacity: "audacityteam.org", blender: "blender.org",
-  gimp: "gimp.org", whatsapp: "whatsapp.com", steam: "steampowered.com",
-};
-function domainFor(id) {
-  const p = String(id).split(".")[0].toLowerCase();
-  return DOMAIN_MAP[p] || `${p.replace(/[^a-z0-9]/g, "")}.com`;
-}
+// ============ App icons ============
+// Avatar de letra coloreada, generado localmente: no se hace ninguna petición
+// externa (antes se consultaba logo.clearbit.com, revelando a un tercero qué
+// paquetes tiene instalados o mira el usuario).
 function colorFor(name) {
   let h = 0;
   for (const c of String(name)) h = (h * 31 + c.charCodeAt(0)) % 360;
@@ -249,8 +239,7 @@ function colorFor(name) {
 }
 function iconHtml(pkg) {
   const letter = (pkg.name || pkg.id || "?").trim().charAt(0).toUpperCase() || "?";
-  const logo = `https://logo.clearbit.com/${domainFor(pkg.id)}`;
-  return `<div class="app-icon" style="background:${colorFor(pkg.name || pkg.id)}"><span>${esc(letter)}</span><img src="${logo}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()" /></div>`;
+  return `<div class="app-icon" style="background:${colorFor(pkg.name || pkg.id)}"><span>${esc(letter)}</span></div>`;
 }
 
 // ============ Status / admin ============
