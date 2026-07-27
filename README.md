@@ -20,6 +20,7 @@ It's built with **Tauri** (a Rust backend driving a lightweight web frontend), s
 - **Schedule** — create tasks in the Windows Task Scheduler (daily / weekly / monthly at a given time) that run `winget upgrade --all` silently. Test or delete them from the app.
 - **Language** — English by default, with an EN/ES switcher in the top bar (remembered).
 - **Run as administrator** — a button that relaunches the app elevated once, so you don't get a UAC prompt for every single package during an update.
+- **Advanced** — State Sync (export/import your package list as JSON/YAML), Remote Deploy (run winget on remote machines over WinRM), IaC Generator (turn a selection into PowerShell or Ansible) and Silent Daemon (a background Windows service for silent scheduled updates). All free, no license needed.
 - **Donate** — a tab with links to GitHub Sponsors and Buy Me a Coffee for anyone who wants to support the project. Entirely optional, never required for any feature.
 
 **100% free, no ads.** If you find it useful, you can support development from the **Donate** tab (GitHub Sponsors / Buy Me a Coffee) — never required to use any feature.
@@ -81,19 +82,6 @@ PrettyGet/
 - Per-package progress and a system tray icon.
 - Notifications when new updates are available.
 - Export/import the package list.
-
-## PrettyGet Pro (free for everyone, for now)
-
-Four advanced features live in `src-tauri/src/pro/`: State Sync (export/import JSON/YAML), Remote Deploy (remote winget over WinRM), IaC Generator (PowerShell/Ansible) and Silent Daemon (Windows service). They're shown in the app's **Advanced** tab and are **unlocked for everyone**, no license required.
-
-Underneath, a full signed-license system (ed25519) still exists — it was originally meant for a paid tier — kept intact but dormant behind the `FREE_FOR_ALL` switch in `pro/entitlements.rs`, in case a paid model is reintroduced later. Full details in [docs/PRO_ARCHITECTURE.md](docs/PRO_ARCHITECTURE.md) (in Spanish).
-
-Tooling for that layer (separate crates under `tools/`, not part of the app bundle):
-
-```bash
-cd tools/license-signer   && cargo run -- keygen        # generates the keypair (only needed if the paid model is reactivated)
-cd tools/prettyget-daemon && cargo build --release       # the service binary, used by Silent Daemon
-```
 
 ## Notes
 
