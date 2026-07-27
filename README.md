@@ -1,49 +1,57 @@
-# PrettyGet ⬇
+<p align="center">
+  <img src="PrettyGet_logo.png" alt="PrettyGet" width="180" />
+</p>
 
-Una interfaz de escritorio **bonita** para `winget`. Actualiza todo tu sistema, mira qué se va a actualizar, sigue el progreso en vivo y programa actualizaciones automáticas. Construida con **Tauri** (Rust + web), tema oscuro minimal.
+<h1 align="center">PrettyGet ⬇</h1>
 
-**100% gratis, sin anuncios.** Si te resulta útil, puedes apoyar el desarrollo desde la pestaña **Donar** de la app (GitHub Sponsors / Buy Me a Coffee) — nunca es necesario para usar ninguna función.
+<p align="center">A <b>pretty</b> desktop interface for <code>winget</code> — winget, but nice to look at.</p>
 
-![tema](https://img.shields.io/badge/tema-oscuro%20minimal-6d7cff) ![stack](https://img.shields.io/badge/stack-Tauri%20%2B%20Rust-9a6dff) ![precio](https://img.shields.io/badge/precio-gratis-45d483)
+PrettyGet wraps Windows' built-in package manager (`winget`) in a clean, dark-themed desktop app. Instead of remembering `winget` flags and reading raw console tables, you get a proper UI: see what's outdated, search and install new software, watch the live output of any operation, and schedule silent updates to run on their own — all from one window.
 
-## Funciones
+It's built with **Tauri** (a Rust backend driving a lightweight web frontend), so it's small and fast, with no browser engine bundled separately.
 
-- **Actualizaciones** — lista los paquetes con versión nueva (nombre, Id, versión actual → disponible). Actualiza todo, una selección, o uno a uno.
-- **Explorar** — busca paquetes nuevos (`winget search`) e instálalos, o revisa los instalados (`winget list`) y desinstálalos. **Opciones avanzadas**: elige la fuente (todas / winget / Microsoft Store) y el modo de instalación (silenciosa o interactiva); las preferencias se recuerdan.
-- **Registro en vivo** — la salida de winget se retransmite línea a línea durante cualquier operación.
-- **Programar** — crea tareas en el Programador de tareas de Windows (cada día / semana / mes a una hora) que ejecutan `winget upgrade --all` en silencio. Puedes probarlas o eliminarlas desde la app.
-- **Idioma** — inglés por defecto, con selector EN/ES en la barra superior (se recuerda).
-- **Ejecutar como administrador** — botón que reinicia la app elevada una sola vez, para evitar el aviso UAC por cada paquete al actualizar.
-- **Donar** — pestaña con enlaces a GitHub Sponsors y Buy Me a Coffee para quien quiera apoyar el proyecto. Totalmente opcional.
+![theme](https://img.shields.io/badge/theme-dark%20minimal-6d7cff) ![stack](https://img.shields.io/badge/stack-Tauri%20%2B%20Rust-9a6dff) ![price](https://img.shields.io/badge/price-free-45d483)
 
-## Requisitos
+## Features
 
-1. **Windows 10/11** con **winget** instalado (viene con *App Installer* de la Microsoft Store).
+- **Updates** — lists every package with a newer version available (name, Id, current → available version). Update everything, a selection, or one at a time, with a live progress bar and a button to abort mid-update.
+- **Explore** — search for new packages (`winget search`) and install them, or browse what's already installed (`winget list`) and uninstall it. **Advanced options**: pick the source (all / winget / Microsoft Store) and install mode (silent or interactive); preferences are remembered.
+- **Live log** — winget's output streams line by line during any operation, with a progress bar and an Abort button while something is running.
+- **Schedule** — create tasks in the Windows Task Scheduler (daily / weekly / monthly at a given time) that run `winget upgrade --all` silently. Test or delete them from the app.
+- **Language** — English by default, with an EN/ES switcher in the top bar (remembered).
+- **Run as administrator** — a button that relaunches the app elevated once, so you don't get a UAC prompt for every single package during an update.
+- **Donate** — a tab with links to GitHub Sponsors and Buy Me a Coffee for anyone who wants to support the project. Entirely optional, never required for any feature.
+
+**100% free, no ads.** If you find it useful, you can support development from the **Donate** tab (GitHub Sponsors / Buy Me a Coffee) — never required to use any feature.
+
+## Requirements
+
+1. **Windows 10/11** with **winget** installed (comes with *App Installer* from the Microsoft Store).
 2. **Rust** → https://rustup.rs
-3. **Node.js** (solo para la CLI de Tauri) → https://nodejs.org
-4. Dependencias del sistema para Tauri en Windows: **Microsoft Edge WebView2** (ya viene en Windows 11) y **Visual Studio Build Tools** con "Desktop development with C++".
+3. **Node.js** (only for the Tauri CLI) → https://nodejs.org
+4. System dependencies for Tauri on Windows: **Microsoft Edge WebView2** (already included on Windows 11) and **Visual Studio Build Tools** with the "Desktop development with C++" workload.
 
-## Arrancar en desarrollo
+## Running in development
 
 ```bash
 cd PrettyGet
-npm install          # instala la CLI de Tauri
-npm run dev          # compila Rust + abre la ventana (tauri dev)
+npm install          # installs the Tauri CLI
+npm run dev          # builds Rust + opens the window (tauri dev)
 ```
 
-La primera compilación de Rust tarda un poco; las siguientes son rápidas.
+The first Rust build takes a little while; later ones are fast. Note: dev builds show a console window alongside the app (useful for Rust log output) — the release build below does not.
 
-## Compilar el instalador
+## Building the installer
 
 ```bash
-npm run build        # genera un .msi y un .exe (NSIS) en src-tauri/target/release/bundle/
+npm run build        # produces a .msi and a .exe (NSIS) in src-tauri/target/release/bundle/
 ```
 
-## Estructura
+## Structure
 
 ```
 PrettyGet/
-├─ package.json            # scripts dev/build (CLI de Tauri)
+├─ package.json            # dev/build scripts (Tauri CLI)
 ├─ src/                    # frontend (web)
 │  ├─ index.html
 │  ├─ styles.css
@@ -52,45 +60,46 @@ PrettyGet/
    ├─ Cargo.toml
    ├─ build.rs
    ├─ tauri.conf.json
-   ├─ icons/               # iconos de la app
+   ├─ capabilities/        # Tauri v2 permission grants (ACL)
+   ├─ icons/               # app icons
    └─ src/
-      ├─ main.rs           # registro de comandos
-      ├─ winget.rs         # listar/buscar/instalar/desinstalar/actualizar + parser de tablas
-      └─ schedule.rs       # tareas programadas con schtasks
+      ├─ main.rs           # command registration
+      ├─ winget.rs         # list/search/install/uninstall/upgrade + table parser
+      └─ schedule.rs       # scheduled tasks via schtasks
 ```
 
-## Cómo funciona por dentro
+## How it works internally
 
-- **Listar**: ejecuta `winget upgrade --include-unknown` y parsea la tabla **independientemente del idioma** del sistema: localiza las columnas por su posición (a partir de la línea de guiones), limpia códigos ANSI, y filtra pies de tabla. Funciona con Windows en inglés, español, etc.
-- **Actualizar**: lanza winget con `--silent` (sin `--disable-interactivity`, para que el progreso fluya) y retransmite la salida en vivo: las líneas terminadas en `\r` (progreso) se emiten como transitorias y reemplazan a la anterior; las terminadas en `\n` se confirman. Eventos `winget-out` / `winget-done`.
-- **Administrador**: `relaunch_as_admin` reinicia el ejecutable con `Start-Process -Verb RunAs` (un único UAC); `is_elevated` comprueba el estado.
-- **Programar**: usa `schtasks /Create` con el prefijo `PrettyGet_` para poder listar y borrar solo sus propias tareas.
-- Las ventanas de consola de winget/schtasks se ocultan con la bandera `CREATE_NO_WINDOW`.
+- **Listing**: runs `winget upgrade --include-unknown` and parses the table **independently of system language**: it locates columns by position (from the dashed separator line), strips ANSI codes, and filters out footer lines. Works with Windows in English, Spanish, etc. Output is normalized from CRLF before parsing, since winget's line endings would otherwise throw off the column detection.
+- **Updating**: launches winget with `--silent` (without `--disable-interactivity`, so progress keeps flowing) and streams the output live: lines ending in `\r` (progress) are emitted as transient and replace the previous one — a percentage is parsed out and drives a real progress bar; lines ending in `\n` are committed. Events `winget-out` / `winget-done`. Stdin is explicitly closed so winget can never hang waiting on input that will never come. The running process's PID is tracked so it can be cancelled mid-operation.
+- **Administrator**: `relaunch_as_admin` restarts the executable with `Start-Process -Verb RunAs` (a single UAC prompt); `is_elevated` checks the current state.
+- **Schedule**: uses `schtasks /Create` with a `PrettyGet_` prefix so the app can list and delete only its own tasks.
+- Winget/schtasks console windows are hidden with the `CREATE_NO_WINDOW` flag.
 
-## Próximas ideas
+## Ideas for later
 
-- Barra de progreso por paquete e icono en la bandeja del sistema.
-- Notificaciones cuando hay actualizaciones nuevas.
-- Exportar/importar la lista de paquetes.
+- Per-package progress and a system tray icon.
+- Notifications when new updates are available.
+- Export/import the package list.
 
-## PrettyGet Pro (ahora gratis para todos)
+## PrettyGet Pro (free for everyone, for now)
 
-Cuatro funciones avanzadas viven en `src-tauri/src/pro/`: State Sync (export/import JSON/YAML), Remote Deploy (winget remoto vía WinRM), IaC Generator (PowerShell/Ansible) y Silent Daemon (servicio Windows). Se muestran en la pestaña **Advanced** de la app y **están desbloqueadas para todo el mundo**, sin licencia.
+Four advanced features live in `src-tauri/src/pro/`: State Sync (export/import JSON/YAML), Remote Deploy (remote winget over WinRM), IaC Generator (PowerShell/Ansible) and Silent Daemon (Windows service). They're shown in the app's **Advanced** tab and are **unlocked for everyone**, no license required.
 
-Por debajo sigue existiendo un sistema completo de licencias firmadas (ed25519) que en su día pensé usar para un modelo de pago; se mantiene intacto pero inactivo tras el interruptor `FREE_FOR_ALL` en `pro/entitlements.rs`, por si en el futuro quisiera reactivarlo. Detalles completos en [docs/PRO_ARCHITECTURE.md](docs/PRO_ARCHITECTURE.md).
+Underneath, a full signed-license system (ed25519) still exists — it was originally meant for a paid tier — kept intact but dormant behind the `FREE_FOR_ALL` switch in `pro/entitlements.rs`, in case a paid model is reintroduced later. Full details in [docs/PRO_ARCHITECTURE.md](docs/PRO_ARCHITECTURE.md) (in Spanish).
 
-Herramientas de esa capa (crates aparte en `tools/`, no forman parte del bundle de la app):
+Tooling for that layer (separate crates under `tools/`, not part of the app bundle):
 
 ```bash
-cd tools/license-signer   && cargo run -- keygen        # genera el par de claves (solo si se reactivara el modelo de pago)
-cd tools/prettyget-daemon && cargo build --release       # binario del servicio, usado por Silent Daemon
+cd tools/license-signer   && cargo run -- keygen        # generates the keypair (only needed if the paid model is reactivated)
+cd tools/prettyget-daemon && cargo build --release       # the service binary, used by Silent Daemon
 ```
 
-## Notas
+## Notes
 
-- Si una actualización requiere permisos de administrador, winget pedirá elevación (UAC).
-- El parser cubre la salida estándar de winget; si Microsoft cambia el formato, ajusta `parse_upgrades` en `winget.rs` (tiene tests unitarios: `cargo test`).
+- If an update needs administrator rights, winget will prompt for elevation (UAC).
+- The parser covers winget's standard output; if Microsoft changes the format, adjust `parse_upgrades` in `winget.rs` (it has unit tests: `cargo test`).
 
-## Licencia
+## License
 
-[GPLv3](LICENSE). Puedes usar, modificar y redistribuir PrettyGet libremente, incluso comercialmente, pero cualquier versión modificada que distribuyas debe seguir siendo software libre bajo la misma licencia.
+[GPLv3](LICENSE). You're free to use, modify, and redistribute PrettyGet, including commercially, but any modified version you distribute must stay free software under the same license.
