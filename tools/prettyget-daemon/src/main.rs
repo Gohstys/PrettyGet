@@ -11,12 +11,13 @@
 #![cfg(windows)]
 
 use std::ffi::OsString;
+use std::os::windows::process::CommandExt;  // aporta Command::creation_flags
 use std::path::PathBuf;
 use std::process::Command;
 use std::sync::mpsc;
 use std::time::Duration;
 
-use chrono::{Datelike, Local, Timelike, Weekday};
+use chrono::{Datelike, Local, Weekday};
 use serde::Deserialize;
 
 use windows_service::service::{
