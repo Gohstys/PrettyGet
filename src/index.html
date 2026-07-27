@@ -169,8 +169,15 @@
               <h1 data-i18n="logs.title">Logs</h1>
               <p class="muted" data-i18n="logs.sub">Live output from winget operations.</p>
             </div>
-            <button class="btn ghost" id="clearLogBtn" data-i18n="logs.clear">Clear</button>
+            <div class="actions">
+              <button class="btn ghost danger" id="abortBtn" hidden data-i18n="logs.abort">Abort</button>
+              <button class="btn ghost" id="clearLogBtn" data-i18n="logs.clear">Clear</button>
+            </div>
           </header>
+          <div class="progress-wrap" id="progressWrap" hidden>
+            <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+            <span class="progress-label" id="progressLabel">0%</span>
+          </div>
           <pre class="logbox" id="logBox"></pre>
         </section>
 

@@ -5,12 +5,51 @@
 use serde::{Deserialize, Serialize};
 use std::io::Read;
 use std::process::{Command, Stdio};
-use tauri::{AppHandle, Emitter};
+use std::sync::Mutex;
+use tauri::{AppHandle, Emitter, Manager};
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
 #[cfg(windows)]
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
+/// PID del proceso winget en curso (si hay uno), para poder abortarlo desde
+/// `cancel_running`. Solo hay una operación de streaming a la vez (protegido
+/// por el flag `busy` del frontend), así que basta con guardar un único PID.
+#[derive(Default)]
+pub struct RunningJob(Mutex<Option<u32>>);
+
+impl RunningJob {
+    fn set(&self, pid: u32) {
+        if let Ok(mut g) = self.0.lock() {
+            *g = Some(pid);
+        }
+    }
+    fn clear(&self) {
+        if let Ok(mut g) = self.0.lock() {
+            *g = None;
+        }
+    }
+    fn get(&self) -> Option<u32> {
+        self.0.lock().ok().and_then(|g| *g)
+    }
+}
+
+/// Aborta la operación de winget en curso, si hay alguna. Mata el árbol de
+/// procesos (winget puede lanzar a su vez el instalador real) vía `taskkill`.
+#[tauri::command]
+pub fn cancel_running(app: AppHandle) -> Result<bool, String> {
+    let pid = match app.state::<RunningJob>().get() {
+        Some(p) => p,
+        None => return Ok(false),
+    };
+    let mut cmd = Command::new("taskkill");
+    #[cfg(windows)]
+    cmd.creation_flags(CREATE_NO_WINDOW);
+    cmd.args(["/PID", &pid.to_string(), "/T", "/F"]);
+    cmd.output().map_err(|e| e.to_string())?;
+    Ok(true)
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Upgrade {
@@ -279,10 +318,16 @@ async fn stream(app: AppHandle, args: Vec<String>) -> Result<i32, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let mut child = winget_cmd()
             .args(&args)
+            // Sin esto, el hijo hereda el stdin del proceso padre (a menudo sin
+            // consola real). Si winget llega a esperar una confirmación por
+            // teclado, se queda colgado para siempre en vez de fallar o seguir.
+            .stdin(Stdio::null())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
             .map_err(|e| format!("No se pudo ejecutar winget: {e}"))?;
+
+        app.state::<RunningJob>().set(child.id());
 
         let stdout = child.stdout.take();
         let stderr = child.stderr.take();
@@ -299,6 +344,7 @@ async fn stream(app: AppHandle, args: Vec<String>) -> Result<i32, String> {
         let _ = err_handle.join();
 
         let status = child.wait().map_err(|e| e.to_string())?;
+        app.state::<RunningJob>().clear();
         let code = status.code().unwrap_or(-1);
         let _ = app.emit("winget-done", code);
         Ok(code)
@@ -360,10 +406,35 @@ fn commit(app: &AppHandle, raw: &str, transient: bool) {
     if trimmed.trim().is_empty() {
         return;
     }
+    let percent = if transient { extract_percent(trimmed) } else { None };
     let _ = app.emit(
         "winget-out",
-        serde_json::json!({ "text": trimmed, "transient": transient }),
+        serde_json::json!({ "text": trimmed, "transient": transient, "percent": percent }),
     );
+}
+
+/// Busca un porcentaje ("NN%") en una línea de progreso transitoria, p.ej.
+/// "  ██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░  25%" → Some(25).
+fn extract_percent(line: &str) -> Option<u8> {
+    let bytes = line.as_bytes();
+    for (i, &b) in bytes.iter().enumerate() {
+        if b != b'%' {
+            continue;
+        }
+        let mut j = i;
+        while j > 0 && bytes[j - 1].is_ascii_digit() {
+            j -= 1;
+        }
+        if j == i {
+            continue;
+        }
+        if let Ok(n) = line[j..i].parse::<u32>() {
+            if n <= 100 {
+                return Some(n as u8);
+            }
+        }
+    }
+    None
 }
 
 // ===================== Utilidades de texto =====================
@@ -584,6 +655,15 @@ mod tests {
         let ups = parse_upgrades(&text);
         assert_eq!(ups.len(), 1);
         assert_eq!(ups[0].id, "Git.Git");
+    }
+
+    #[test]
+    fn extract_percent_finds_trailing_percentage() {
+        assert_eq!(extract_percent("  ████████░░░░░░░░░░░░░░░░░░░░░░  25%"), Some(25));
+        assert_eq!(extract_percent("Downloading   12.3 MB / 45.2 MB"), None);
+        assert_eq!(extract_percent("100%"), Some(100));
+        assert_eq!(extract_percent("no percent here"), None);
+        assert_eq!(extract_percent("weird 150% value"), None);
     }
 
     #[test]

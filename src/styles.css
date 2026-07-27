@@ -233,6 +233,12 @@ input[type=checkbox] { width: 17px; height: 17px; accent-color: var(--accent); c
 .donate-thanks { text-align: center; color: var(--muted); font-size: 13.5px; }
 
 /* ---------- Logs ---------- */
+.btn.danger { color: var(--red); }
+.btn.danger:hover:not(:disabled) { background: rgba(255,107,107,0.12); border-color: var(--red); }
+.progress-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.progress-track { flex: 1; height: 8px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--border); overflow: hidden; }
+.progress-bar { height: 100%; width: 0%; background: linear-gradient(135deg, var(--accent), var(--accent-2)); transition: width 0.2s ease; }
+.progress-label { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
 .logbox { background: #08090d; border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; height: calc(100vh - 210px); overflow-y: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.75; color: #b9c0d4; white-space: pre-wrap; word-break: break-word; user-select: text; }
 
 /* ---------- Toast ---------- */

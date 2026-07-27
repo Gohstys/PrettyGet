@@ -40,7 +40,8 @@ const I18N = {
     "sch.name": "Name", "sch.freq": "Frequency", "sch.daily": "Every day", "sch.weekly": "Every week", "sch.monthly": "Every month",
     "sch.time": "Time", "sch.create": "Create task", "sch.active": "Active tasks", "sch.none": "No scheduled tasks yet.",
     "sch.test": "▶ Test", "sch.delete": "🗑 Delete", "sch.next": "Next run", "sch.status": "Status", "sch.needName": "Give the task a name",
-    "logs.title": "Logs", "logs.sub": "Live output from winget operations.", "logs.clear": "Clear",
+    "logs.title": "Logs", "logs.sub": "Live output from winget operations.", "logs.clear": "Clear", "logs.abort": "Abort",
+    "log.cancelled": "— Cancelled by user —", "toast.cancelled": "Operation cancelled",
     "toast.updateDone": "Success: packages updated", "toast.finishedCode": "Finished with code {code}",
     "toast.selectionDone": "Selection processed", "toast.busy": "An operation is already running",
     "toast.noWinget": "winget not detected. Install it from the Microsoft Store (App Installer).",
@@ -94,7 +95,8 @@ const I18N = {
     "sch.name": "Nombre", "sch.freq": "Frecuencia", "sch.daily": "Cada día", "sch.weekly": "Cada semana", "sch.monthly": "Cada mes",
     "sch.time": "Hora", "sch.create": "Crear tarea", "sch.active": "Tareas activas", "sch.none": "Aún no hay tareas programadas.",
     "sch.test": "▶ Probar", "sch.delete": "🗑 Eliminar", "sch.next": "Próxima ejecución", "sch.status": "Estado", "sch.needName": "Pon un nombre a la tarea",
-    "logs.title": "Registro", "logs.sub": "Salida en vivo de las operaciones de winget.", "logs.clear": "Limpiar",
+    "logs.title": "Registro", "logs.sub": "Salida en vivo de las operaciones de winget.", "logs.clear": "Limpiar", "logs.abort": "Abortar",
+    "log.cancelled": "— Cancelado por el usuario —", "toast.cancelled": "Operación cancelada",
     "toast.updateDone": "Listo: paquetes actualizados", "toast.finishedCode": "Finalizó con código {code}",
     "toast.selectionDone": "Selección procesada", "toast.busy": "Ya hay una operación en curso",
     "toast.noWinget": "No se detectó winget. Instálalo desde la Microsoft Store (App Installer).",
@@ -176,6 +178,7 @@ function toast(msg, type = "info") {
 // ============ Live log ============
 let logLines = [];
 let logTransient = null;
+let cancelling = false;
 function renderLog() {
   const box = $("#logBox");
   let txt = logLines.join("\n");
@@ -186,19 +189,51 @@ function renderLog() {
 function logLine(text) { logLines.push(text); logTransient = null; renderLog(); }
 $("#clearLogBtn").addEventListener("click", () => { logLines = []; logTransient = null; renderLog(); });
 
+function setProgress(percent) {
+  $("#progressBar").style.width = percent + "%";
+  $("#progressLabel").textContent = percent + "%";
+}
+function beginBusy() {
+  busy = true;
+  $("#abortBtn").hidden = false;
+  $("#progressWrap").hidden = false;
+  setProgress(0);
+}
+function endBusy() {
+  busy = false;
+  $("#abortBtn").hidden = true;
+  $("#progressWrap").hidden = true;
+}
+$("#abortBtn").addEventListener("click", async () => {
+  if (!busy || cancelling) return;
+  cancelling = true;
+  try {
+    const killed = await invoke("cancel_running");
+    if (!killed) cancelling = false;
+  } catch (err) { cancelling = false; toast(String(err), "err"); }
+});
+
 listen("winget-out", (e) => {
-  const { text, transient } = e.payload;
-  if (transient) logTransient = text;
-  else { logLines.push(text); logTransient = null; }
+  const { text, transient, percent } = e.payload;
+  if (transient) {
+    logTransient = text;
+    if (typeof percent === "number") setProgress(percent);
+  } else { logLines.push(text); logTransient = null; }
   renderLog();
 });
 listen("winget-done", (e) => {
   const code = e.payload;
   logLine("");
-  logLine(t("log.finished", { code }));
-  busy = false;
-  if (code === 0) toast(t("toast.updateDone"), "ok");
-  else toast(t("toast.finishedCode", { code }), "err");
+  if (cancelling) {
+    logLine(t("log.cancelled"));
+    toast(t("toast.cancelled"), "info");
+    cancelling = false;
+  } else {
+    logLine(t("log.finished", { code }));
+    if (code === 0) toast(t("toast.updateDone"), "ok");
+    else toast(t("toast.finishedCode", { code }), "err");
+  }
+  endBusy();
   refresh();
 });
 
@@ -299,31 +334,31 @@ function updateSelected() {
 
 async function upgradeOne(id) {
   if (busy) return toast(t("toast.busy"), "info");
-  busy = true; switchTab("logs");
+  beginBusy(); switchTab("logs");
   logLine(""); logLine(t("log.updating", { x: id }));
   if (!elevated) logLine(t("log.adminHint"));
   try { await invoke("upgrade_package", { id }); }
-  catch (err) { busy = false; toast(String(err), "err"); logLine("ERROR: " + err); }
+  catch (err) { endBusy(); toast(String(err), "err"); logLine("ERROR: " + err); }
 }
 $("#upgradeAllBtn").addEventListener("click", async () => {
   if (busy) return toast(t("toast.busy"), "info");
-  busy = true; switchTab("logs");
+  beginBusy(); switchTab("logs");
   logLine(""); logLine(t("log.updatingAll"));
   if (!elevated) logLine(t("log.adminHint"));
   try { await invoke("upgrade_all"); }
-  catch (err) { busy = false; toast(String(err), "err"); logLine("ERROR: " + err); }
+  catch (err) { endBusy(); toast(String(err), "err"); logLine("ERROR: " + err); }
 });
 $("#upgradeSelectedBtn").addEventListener("click", async () => {
   const ids = selectedIds();
   if (ids.length === 0 || busy) return;
-  busy = true; switchTab("logs");
+  beginBusy(); switchTab("logs");
   logLine(""); logLine(t("log.updatingSel", { n: ids.length }));
   if (!elevated) logLine(t("log.adminHint"));
   for (const id of ids) {
     logLine(`— ${id} —`);
     try { await invoke("upgrade_package", { id }); } catch (err) { logLine("ERROR: " + err); }
   }
-  busy = false; toast(t("toast.selectionDone"), "ok"); refresh();
+  endBusy(); toast(t("toast.selectionDone"), "ok"); refresh();
 });
 
 // ============ Explore ============
@@ -382,11 +417,11 @@ function renderExplore(pkgs, keepEmpty) {
 
 async function runPkg(cmd, args, name, verbKey) {
   if (busy) return toast(t("toast.busy"), "info");
-  busy = true; switchTab("logs");
+  beginBusy(); switchTab("logs");
   logLine(""); logLine(t(verbKey, { x: name || args.id }));
   if (!elevated) logLine(t("log.adminHint"));
   try { await invoke(cmd, args); }
-  catch (err) { busy = false; toast(String(err), "err"); logLine("ERROR: " + err); }
+  catch (err) { endBusy(); toast(String(err), "err"); logLine("ERROR: " + err); }
 }
 
 // ============ Global top search ============

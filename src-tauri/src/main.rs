@@ -14,6 +14,8 @@ fn main() {
         .plugin(tauri_plugin_opener::init())
         // Estado global compartido (nivel de licencia / entitlements).
         .manage(pro::AppState::new())
+        // PID del proceso winget en curso, para poder abortarlo.
+        .manage(winget::RunningJob::default())
         .setup(|app| {
             // Carga y valida la licencia guardada al arrancar (modo Free si falla).
             let state = app.state::<pro::AppState>();
@@ -30,6 +32,7 @@ fn main() {
             winget::list_installed,
             winget::install_package,
             winget::uninstall_package,
+            winget::cancel_running,
             schedule::create_schedule,
             schedule::list_schedules,
             schedule::delete_schedule,
