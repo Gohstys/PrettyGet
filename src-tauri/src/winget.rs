@@ -413,7 +413,10 @@ fn strip_ansi(s: &str) -> String {
 
 fn decode(bytes: &[u8]) -> String {
     let s = decode_bytes(bytes);
-    strip_ansi(&s).replace('\r', "\n")
+    // Normaliza CRLF a LF primero: si se reemplaza '\r' suelto antes, cada "\r\n"
+    // se convierte en "\n\n" (línea en blanco de más), lo que descuadra la
+    // detección de la cabecera de la tabla y hace que el parser no encuentre filas.
+    strip_ansi(&s).replace("\r\n", "\n").replace('\r', "\n")
 }
 
 /// Decodifica la salida de winget tolerando UTF-8, UTF-16 (con/sin BOM) y BOM UTF-8.
@@ -569,6 +572,19 @@ pub fn parse_packages(text: &str) -> Vec<Package> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn decode_handles_crlf_without_inserting_blank_lines() {
+        // winget en Windows termina cada línea en "\r\n" (CRLF). decode() debe
+        // normalizarlo a "\n" sin duplicar saltos de línea (que insertaría una
+        // línea en blanco entre cada línea real y rompería find_header/parse_rows).
+        let raw = b"Name        Id            Version   Available  Source\r\n----------------------------------------------------------\r\nGit         Git.Git       2.44.0    2.45.1     winget\r\n";
+        let text = decode(raw);
+        assert!(!text.contains("\n\n"), "decode() no debe insertar líneas en blanco: {text:?}");
+        let ups = parse_upgrades(&text);
+        assert_eq!(ups.len(), 1);
+        assert_eq!(ups[0].id, "Git.Git");
+    }
 
     #[test]
     fn parses_english_upgrades() {

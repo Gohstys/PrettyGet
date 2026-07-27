@@ -7,6 +7,7 @@ const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
 let upgrades = [];
 let lastExplore = [];
+let hasSearched = false;
 let busy = false;
 let exploreMode = "search";
 let lang = "en";
@@ -50,7 +51,7 @@ const I18N = {
     "log.updatingSel": "▶ Updating {n} selected package(s)…",
     "log.installing": "▶ Installing {x}…", "log.uninstalling": "▶ Uninstalling {x}…",
     "log.finished": "— Process finished (code {code}) —", "log.adminHint": "Tip: run as administrator to avoid a UAC prompt per app.",
-    "pro.nav": "Pro", "pro.title": "PrettyGet Pro", "pro.sub": "Power tools for power users and teams — free for everyone.", "pro.locked": "Requires Pro",
+    "pro.nav": "Advanced", "pro.title": "Advanced tools", "pro.sub": "Power tools for power users and teams — free for everyone.", "pro.locked": "Requires Pro",
     "donate.nav": "Donate", "donate.title": "Support PrettyGet", "donate.sub": "PrettyGet is free and always will be. If it's useful to you, consider supporting its development.",
     "donate.sponsors.title": "GitHub Sponsors", "donate.sponsors.body": "Recurring or one-time support, right from your GitHub account.", "donate.sponsors.cta": "Sponsor on GitHub",
     "donate.bmc.title": "Buy Me a Coffee", "donate.bmc.body": "A quick way to say thanks with a one-time contribution.", "donate.bmc.cta": "Buy me a coffee",
@@ -104,7 +105,7 @@ const I18N = {
     "log.updatingSel": "▶ Actualizando {n} paquete(s) seleccionados…",
     "log.installing": "▶ Instalando {x}…", "log.uninstalling": "▶ Desinstalando {x}…",
     "log.finished": "— Proceso finalizado (código {code}) —", "log.adminHint": "Consejo: ejecuta como administrador para evitar el UAC por cada app.",
-    "pro.nav": "Pro", "pro.title": "PrettyGet Pro", "pro.sub": "Herramientas avanzadas para usuarios y equipos — gratis para todos.", "pro.locked": "Requiere Pro",
+    "pro.nav": "Avanzado", "pro.title": "Herramientas avanzadas", "pro.sub": "Herramientas avanzadas para usuarios y equipos — gratis para todos.", "pro.locked": "Requiere Pro",
     "donate.nav": "Donar", "donate.title": "Apoya a PrettyGet", "donate.sub": "PrettyGet es gratis y lo seguirá siendo. Si te resulta útil, valora apoyar su desarrollo.",
     "donate.sponsors.title": "GitHub Sponsors", "donate.sponsors.body": "Apoyo recurrente o puntual, directamente desde tu cuenta de GitHub.", "donate.sponsors.cta": "Patrocinar en GitHub",
     "donate.bmc.title": "Buy Me a Coffee", "donate.bmc.body": "Una forma rápida de decir gracias con una aportación puntual.", "donate.bmc.cta": "Invítame a un café",
@@ -347,6 +348,7 @@ async function runExplore() {
     const args = exploreMode === "search" ? { query: q, source: advSource() } : { query: q };
     const cmd = exploreMode === "search" ? "search_packages" : "list_installed";
     lastExplore = await invoke(cmd, args);
+    hasSearched = true;
     renderExplore(lastExplore);
   } catch (err) {
     toast(String(err), "err");
@@ -357,7 +359,10 @@ async function runExplore() {
 function renderExplore(pkgs, keepEmpty) {
   const list = $("#exploreList");
   if (!pkgs.length) {
-    if (!keepEmpty) list.innerHTML = `<div class="empty"><div class="empty-ico">⌕</div><p>${esc(t("explore.start"))}</p></div>`;
+    if (!keepEmpty) {
+      const msg = hasSearched ? t("explore.noResults") : t("explore.start");
+      list.innerHTML = `<div class="empty"><div class="empty-ico">⌕</div><p>${esc(msg)}</p></div>`;
+    }
     return;
   }
   const installed = exploreMode === "installed";

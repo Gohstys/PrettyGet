@@ -75,7 +75,7 @@ PrettyGet/
 
 ## PrettyGet Pro (ahora gratis para todos)
 
-Cuatro funciones avanzadas viven en `src-tauri/src/pro/`: State Sync (export/import JSON/YAML), Remote Deploy (winget remoto vía WinRM), IaC Generator (PowerShell/Ansible) y Silent Daemon (servicio Windows). Se muestran en la pestaña **Pro** de la app y **están desbloqueadas para todo el mundo**, sin licencia.
+Cuatro funciones avanzadas viven en `src-tauri/src/pro/`: State Sync (export/import JSON/YAML), Remote Deploy (winget remoto vía WinRM), IaC Generator (PowerShell/Ansible) y Silent Daemon (servicio Windows). Se muestran en la pestaña **Advanced** de la app y **están desbloqueadas para todo el mundo**, sin licencia.
 
 Por debajo sigue existiendo un sistema completo de licencias firmadas (ed25519) que en su día pensé usar para un modelo de pago; se mantiene intacto pero inactivo tras el interruptor `FREE_FOR_ALL` en `pro/entitlements.rs`, por si en el futuro quisiera reactivarlo. Detalles completos en [docs/PRO_ARCHITECTURE.md](docs/PRO_ARCHITECTURE.md).
 
