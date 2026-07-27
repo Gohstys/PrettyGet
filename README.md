@@ -90,4 +90,4 @@ PrettyGet/
 
 ## License
 
-[GPLv3](LICENSE). You're free to use, modify, and redistribute PrettyGet, including commercially, but any modified version you distribute must stay free software under the same license.
+Copyright (C) 2026 Gohsty. Licensed under [GPLv3](LICENSE). You're free to use, modify, and redistribute PrettyGet, including commercially, but any modified version you distribute must stay free software under the same license, and any notice of authorship must be kept intact.
