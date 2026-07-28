@@ -32,7 +32,34 @@ PrettyGet isn't code-signed yet, so Windows may flag the installer/exe the first
 - **SmartScreen warning**: click **More info** → **Run anyway**.
 - **Smart App Control block**: it can only be turned off while still in "Evaluation" mode (Settings → Privacy & security → Windows Security → App & browser control); once it's switched to "On", disabling it requires reinstalling Windows. Building PrettyGet yourself from source (see below) avoids this entirely.
 
-Free code signing through [SignPath Foundation](https://signpath.io/solutions/open-source-community)'s open source program is in progress — this note will be removed once releases are signed.
+See the code signing policy below — this note will be removed once releases are signed.
+
+## Downloads
+
+Get the latest installer from the [Releases page](https://github.com/Gohstys/PrettyGet/releases):
+
+- **`PrettyGet_x.y.z_x64-setup.exe`** — the normal installer, for most people.
+- **`PrettyGet_x.y.z_x64_en-US.msi`** — for silent/managed deployments (`msiexec /quiet`).
+
+Both are built by GitHub Actions from the matching tag, and both include everything —
+there is nothing extra to download.
+
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://signpath.io/), certificate by
+[SignPath Foundation](https://signpath.org/).
+
+*(Application to the SignPath Foundation open source program is pending; releases are
+not signed yet.)*
+
+- **Committers and reviewers**: [Gohsty](https://github.com/Gohstys) — sole maintainer
+- **Approvers**: [Gohsty](https://github.com/Gohstys) — sole maintainer
+
+**Privacy policy**: this program will not transfer any information to other networked
+systems unless specifically requested by the user or the person installing or operating
+it. PrettyGet has no analytics, no accounts and no telemetry; it drives the `winget`
+tool and the Windows Task Scheduler that are already part of Windows, and the package
+data it shows comes from whatever sources your own `winget` is configured to use.
 
 ## Requirements
 
