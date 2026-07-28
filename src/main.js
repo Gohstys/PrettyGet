@@ -64,8 +64,8 @@ const I18N = {
     "iac.title": "IaC Generator", "iac.sub": "Turn a selection into PowerShell or Ansible.", "iac.install": "Install", "iac.upgrade": "Upgrade",
     "iac.uninstall": "Uninstall", "iac.generate": "Generate", "iac.pkgsPh": "Package IDs, one per line…", "iac.needPkgs": "Add at least one package ID",
     "dm.title": "Silent Daemon", "dm.sub": "Background Windows service for silent scheduled updates.", "dm.enabled": "Enabled", "dm.apply": "Apply",
-    "dm.uninstall": "Uninstall service", "dm.exePh": "Path to prettyget-daemon.exe…", "dm.hint": "Requires administrator. Use “Run as admin” first.",
-    "dm.needExe": "Enter the daemon .exe path", "dm.applied": "Daemon configured", "dm.uninstalled": "Service uninstalled",
+    "dm.uninstall": "Uninstall service", "dm.service": "Service binary", "dm.hint": "Requires administrator. Use “Run as admin” first.",
+    "dm.applied": "Daemon configured", "dm.uninstalled": "Service uninstalled",
     "common.copy": "Copy", "common.copied": "Copied",
   },
   es: {
@@ -116,8 +116,8 @@ const I18N = {
     "iac.title": "Generador IaC", "iac.sub": "Convierte una selección en PowerShell o Ansible.", "iac.install": "Instalar", "iac.upgrade": "Actualizar",
     "iac.uninstall": "Desinstalar", "iac.generate": "Generar", "iac.pkgsPh": "Ids de paquetes, uno por línea…", "iac.needPkgs": "Añade al menos un Id",
     "dm.title": "Daemon silencioso", "dm.sub": "Servicio en segundo plano para actualizaciones silenciosas programadas.", "dm.enabled": "Activado", "dm.apply": "Aplicar",
-    "dm.uninstall": "Desinstalar servicio", "dm.exePh": "Ruta a prettyget-daemon.exe…", "dm.hint": "Requiere administrador. Usa «Ejecutar como admin» primero.",
-    "dm.needExe": "Introduce la ruta del .exe del daemon", "dm.applied": "Daemon configurado", "dm.uninstalled": "Servicio desinstalado",
+    "dm.uninstall": "Desinstalar servicio", "dm.service": "Binario del servicio", "dm.hint": "Requiere administrador. Usa «Ejecutar como admin» primero.",
+    "dm.applied": "Daemon configurado", "dm.uninstalled": "Servicio desinstalado",
     "common.copy": "Copiar", "common.copied": "Copiado",
   },
 };
@@ -151,6 +151,7 @@ function switchTab(tab) {
   $$(".nav-item").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
   $$(".tab").forEach((t) => t.classList.toggle("active", t.id === `tab-${tab}`));
   if (tab === "schedule") loadSchedules();
+  if (tab === "pro") loadDaemonPath();
 }
 $$(".nav-item").forEach((btn) => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
 
@@ -524,11 +525,15 @@ $("#iacGen").addEventListener("click", async () => {
 $("#iacCopy").addEventListener("click", () => copyFrom("#iacOut"));
 
 // SilentDaemon
+// El .exe del servicio viene dentro del instalador, así que no se pide ninguna
+// ruta: el backend resuelve el recurso empaquetado. Aquí solo se muestra cuál es.
+async function loadDaemonPath() {
+  try { $("#dmExePath").textContent = await invoke("daemon_exe_path"); }
+  catch (err) { $("#dmExePath").textContent = String(err); }
+}
 $("#dmApply").addEventListener("click", async () => {
-  const daemonExe = $("#dmExe").value.trim();
-  if (!daemonExe) return toast(t("dm.needExe"), "err");
   const config = { frequency: $("#dmFreq").value, time: $("#dmTime").value, only: [], enabled: $("#dmEnabled").checked };
-  try { await invoke("daemon_apply", { config, daemonExe }); toast(t("dm.applied"), "ok"); }
+  try { await invoke("daemon_apply", { config }); toast(t("dm.applied"), "ok"); }
   catch (err) { toast(String(err), "err"); }
 });
 $("#dmUninstall").addEventListener("click", async () => {

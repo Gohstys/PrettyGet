@@ -35,6 +35,7 @@ fn main() {
             pro::commands::remote_run,
             pro::commands::generate_iac,
             pro::commands::daemon_get_config,
+            pro::commands::daemon_exe_path,
             pro::commands::daemon_apply,
             pro::commands::daemon_uninstall
         ])

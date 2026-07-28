@@ -20,7 +20,7 @@ It's built with **Tauri** (a Rust backend driving a lightweight web frontend), s
 - **Schedule** — create tasks in the Windows Task Scheduler (daily / weekly / monthly at a given time) that run `winget upgrade --all` silently. Test or delete them from the app.
 - **Language** — English by default, with an EN/ES switcher in the top bar (remembered).
 - **Run as administrator** — a button that relaunches the app elevated once, so you don't get a UAC prompt for every single package during an update.
-- **Advanced** — State Sync (export/import your package list as JSON/YAML), Remote Deploy (run winget on remote machines over WinRM), IaC Generator (turn a selection into PowerShell or Ansible) and Silent Daemon (a background Windows service for silent scheduled updates). All free, no license needed.
+- **Advanced** — State Sync (export/import your package list as JSON/YAML), Remote Deploy (run winget on remote machines over WinRM), IaC Generator (turn a selection into PowerShell or Ansible) and Silent Daemon (a background Windows service for silent scheduled updates — its binary ships inside the installer, so there's nothing extra to download). All free, no license needed.
 - **Donate** — a tab with links to GitHub Sponsors and Buy Me a Coffee for anyone who wants to support the project. Entirely optional, never required for any feature.
 
 **100% free, no ads.** If you find it useful, you can support development from the **Donate** tab (GitHub Sponsors / Buy Me a Coffee) — never required to use any feature.
@@ -54,6 +54,8 @@ The first Rust build takes a little while; later ones are fast. Note: dev builds
 ## Building the installer
 
 ```bash
+# Build the daemon first — the installer bundles it as a resource, so it has to exist:
+cargo build --release --manifest-path tools/prettyget-daemon/Cargo.toml
 npm run build        # produces a .msi and a .exe (NSIS) in src-tauri/target/release/bundle/
 ```
 
