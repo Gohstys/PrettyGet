@@ -3,11 +3,38 @@
 <head><meta charset="UTF-8" /><title>PrettyGet downloads</title></head>
 <body>
 <h1>PrettyGet downloads</h1>
-<p>Direct (non-redirecting) download links for PrettyGet v0.1.2, used for the Microsoft Store submission's package URL requirement. For normal use, get PrettyGet from the <a href="https://github.com/Gohstys/PrettyGet/releases">Releases page</a> instead.</p>
+
+<p>Direct, non-redirecting download links, hosted here to satisfy the Microsoft
+Store's requirement for a <em>versioned</em> package URL. For normal use, get
+PrettyGet from the <a href="https://github.com/Gohstys/PrettyGet/releases">Releases
+page</a> instead.</p>
+
+<h2>Current</h2>
 <ul>
-  <li><a href="downloads/PrettyGet_0.1.2_x64_en-US.msi">PrettyGet_0.1.2_x64_en-US.msi</a> (silent install: <code>/quiet</code>)</li>
-  <li><a href="downloads/PrettyGet_0.1.2_x64-setup.exe">PrettyGet_0.1.2_x64-setup.exe</a> (silent install: <code>/S</code>)</li>
+  <li><a href="downloads/PrettyGet_0.1.2_x64_en-US.msi">PrettyGet_0.1.2_x64_en-US.msi</a> — silent install: <code>/quiet</code></li>
+  <li><a href="downloads/PrettyGet_0.1.2_x64-setup.exe">PrettyGet_0.1.2_x64-setup.exe</a> — silent install: <code>/S</code></li>
 </ul>
-<p>Built by GitHub Actions from tag <a href="https://github.com/Gohstys/PrettyGet/releases/tag/v0.1.2">v0.1.2</a>.</p>
+
+<h2>Previous versions</h2>
+<ul>
+  <li><a href="downloads/PrettyGet_0.1.0_x64.msi">PrettyGet_0.1.0_x64.msi</a> (shipped in release v0.1.1)</li>
+  <li><a href="downloads/PrettyGet_0.1.0_x64-setup.exe">PrettyGet_0.1.0_x64-setup.exe</a> (shipped in release v0.1.1)</li>
+</ul>
+
+<hr />
+
+<h2>Maintenance note</h2>
+<p><strong>Never delete or overwrite a file in <code>downloads/</code>.</strong>
+Microsoft's rule for Store package URLs is that "the binary on the package URL
+must not change after it is submitted", so every file here must stay byte-identical
+and reachable forever once its URL has been submitted. Adding a new version means
+adding a new file (the filenames already carry the version) and updating the
+"Current" list above — the old entries move to "Previous versions" and stay put.</p>
+
+<p>Each new version also needs an <em>Update submission</em> in Partner Center
+pointing at the new URL; the Store does not pick up a new version on its own.</p>
+
+<p>Binaries are built by GitHub Actions from the matching tag — see the
+<a href="https://github.com/Gohstys/PrettyGet/releases">releases</a>.</p>
 </body>
 </html>
